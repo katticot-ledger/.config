@@ -1,0 +1,26 @@
+[commit]
+	gpgsign = true
+[user]
+	signingkey = E41183439FD5698DAFA4267F395501967D96E29C
+	email = keita.atticot@ledger.fr
+	name = Keita ATTICOT
+[alias]
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+[core]
+	editor = nvim
+	excludesfile = /Users/keita.atticot/.gitignore_global
+[filter "lfs"]
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Users/keita.atticot/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[init]
+	defaultBranch = main
+[gpg]
+	program = gpg
