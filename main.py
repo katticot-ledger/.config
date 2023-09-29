@@ -61,6 +61,8 @@ def main():
         "tig",
         "tunnelblick",
         "zoxide",
+        "yarn",
+        "pdm",
     }
 
     choice = input("Choose an action:\n1. Install packages\n2. Add a new package\nEnter choice (1/2): ")
