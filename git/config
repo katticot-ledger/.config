@@ -8,7 +8,7 @@
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 [core]
 	editor = nvim
-	excludesfile = /Users/keita.atticot/.gitignore_global
+	excludesfile = .config/.gitignore
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f

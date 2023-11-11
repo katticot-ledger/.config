@@ -63,6 +63,7 @@ def main():
         "zoxide",
         "yarn",
         "pdm",
+        "cmake",
     }
 
     choice = input("Choose an action:\n1. Install packages\n2. Add a new package\nEnter choice (1/2): ")

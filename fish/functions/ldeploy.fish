@@ -1,4 +1,4 @@
-function ledger-deploy-and-bake
+function ldeploy
     # Execute the first command in the background
     ledger-vault deploy --name ts-migrate --owner @keita --expirationHours 24 --remoteURL https://remote.minivault.ledger-sbx.com &
 
