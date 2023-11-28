@@ -25,6 +25,5 @@ if not set -q OPENAI_API_KEY
 end
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-# Prepend Rancher Desktop binaries to PATH
 set --export --prepend PATH "/Users/keita.atticot/.rd/bin"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
