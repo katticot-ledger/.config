@@ -13,17 +13,13 @@ set VAULT_WORKSPACE_DIR /Users/keita.atticot/Code/Ledger/vault
 # Extend PATH with Python binaries directory
 set -gx PATH /Users/keita.atticot/Library/Python/3.9/bin $PATH
 
-# Check if OPENAI_API_KEY is already set
-if not set -q OPENAI_API_KEY
-    # Attempt to set OPENAI_API_KEY from 1Password if it's not set
-    set -gx OPENAI_API_KEY (op read op://private/OpenAI/credential --no-newline)
-
-    # Additional check to see if OPENAI_API_KEY was successfully set
-    if not set -q OPENAI_API_KEY
-        echo "Error: OPENAI_API_KEY is not set. Please ensure it is available."
-    end
-end
-
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 set --export --prepend PATH "/Users/keita.atticot/.rd/bin"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+
+# pnpm
+set -gx PNPM_HOME "/Users/keita.atticot/Library/pnpm"
+if not string match -q -- $PNPM_HOME $PATH
+    set -gx PATH "$PNPM_HOME" $PATH
+end
+# pnpm end
