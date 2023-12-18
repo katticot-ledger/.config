@@ -1,5 +1,3 @@
-# -- Changing Window Focus --
-
 # change window focus within space
 alt - j : yabai -m window --focus south
 alt - k : yabai -m window --focus north
@@ -71,3 +69,13 @@ shift + alt - 7 : yabai -m window --space 7;
 ctrl + alt - q : brew services stop yabai
 ctrl + alt - s : brew services start yabai
 ctrl + alt - r : brew services restart yabai
+
+# open terminal, blazingly fast compared to iTerm/Hyper
+cmd - return : open -a /Applications/kitty.app/Contents/MacOS/kitty 
+
+# open qutebrowser
+cmd + shift - return : ~/Scripts/qtb.sh
+
+shift + cmd - a : open -a /Applications/Arc.app/Contents/MacOS/Arc
+shift + cmd - r : open -a /Applications/kitty.app/Contents/MacOS/kitty
+
