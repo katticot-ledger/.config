@@ -1,8 +1,10 @@
 import os
 
+
 def install_packages(packages):
     for package in packages:
         os.system(f"brew install {package}")
+
 
 def update_brew_install(new_package, packages):
     file_path = __file__  # Gets the path of the current script
@@ -16,7 +18,7 @@ def update_brew_install(new_package, packages):
     packages.add(new_package)
 
     # Read the existing content
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         content = file.readlines()
 
     # Locate the block with the package set and update it
@@ -29,17 +31,18 @@ def update_brew_install(new_package, packages):
             break
 
     # Construct the updated package set
-    updated_packages = ',\n        '.join(f'"{pkg}"' for pkg in sorted(packages))
+    updated_packages = ",\n        ".join(f'"{pkg}"' for pkg in sorted(packages))
     updated_block = f"packages = {{\n        {updated_packages},\n    }}\n"
-    
+
     # Replace the old package block with the new one
-    content[start_index:end_index+1] = [updated_block]
+    content[start_index : end_index + 1] = [updated_block]
 
     # Write the updated content back to the file
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         file.writelines(content)
 
     return True
+
 
 def main():
     packages = {
@@ -48,7 +51,7 @@ def main():
         "awscli",
         "bat",
         "dust",
-        "exa",
+        "eza",
         "fzf",
         "gnupg",
         "jq",
@@ -66,7 +69,9 @@ def main():
         "cmake",
     }
 
-    choice = input("Choose an action:\n1. Install packages\n2. Add a new package\nEnter choice (1/2): ")
+    choice = input(
+        "Choose an action:\n1. Install packages\n2. Add a new package\nEnter choice (1/2): "
+    )
 
     if choice == "1":
         install_packages(packages)
@@ -78,6 +83,7 @@ def main():
             print(f"'{new_package}' was not added.")
     else:
         print("Invalid choice!")
+
 
 if __name__ == "__main__":
     main()
