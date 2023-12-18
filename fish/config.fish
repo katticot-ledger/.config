@@ -1,6 +1,6 @@
 # Initialize zoxide for fish shell
 zoxide init fish | source
-
+fish_add_path /opt/homebrew/sbin
 # Initialize starship prompt for fish shell
 starship init fish | source
 
