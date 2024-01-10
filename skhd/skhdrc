@@ -71,7 +71,7 @@ ctrl + alt - s : brew services start yabai
 ctrl + alt - r : brew services restart yabai
 
 # open terminal, blazingly fast compared to iTerm/Hyper
-cmd - return : open -a /Applications/kitty.app/Contents/MacOS/kitty 
+ctrl - return : open -a /Applications/kitty.app/Contents/MacOS/kitty 
 
 # open qutebrowser
 cmd + shift - return : ~/Scripts/qtb.sh
