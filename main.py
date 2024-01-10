@@ -67,6 +67,7 @@ def main():
         "yarn",
         "pdm",
         "cmake",
+        "bluetoothconnector",
     }
 
     choice = input(
