@@ -17,6 +17,27 @@ return {
     -- see below for full list of optional dependencies 👇
   },
   opts = {
+    daily_notes = {
+      folder = "Inbox",
+      date_format = "%Y-%m-%d",
+      alias_format = "%B %-d, %Y",
+      template = nil,
+    },
+    -- Optional, customize how names/IDs for new notes are created.
+    note_id_func = function(title)
+      -- Create note IDs with the current date and time, followed by the note title.
+      local date_time = os.date("%Y%m%d%H%M%S") -- Date and time in 'YYYYMMDDHHMMSS' format
+      local suffix = ""
+      if title ~= nil then
+        -- If title is given, transform it into a valid file name.
+        suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
+      else
+        -- If title is nil, just add a random suffix.
+        suffix = string.char(math.random(65, 90), math.random(65, 90), math.random(65, 90), math.random(65, 90))
+      end
+      return suffix
+    end,
+
     workspaces = {
       {
         name = "ledger",
