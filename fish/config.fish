@@ -1,3 +1,6 @@
+#Aliases
+alias nvim='nvim_nvm'
+
 # Initialize zoxide for fish shell
 zoxide init fish | source
 fish_add_path /opt/homebrew/sbin
