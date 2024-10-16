@@ -43,10 +43,6 @@ return {
         name = "ledger",
         path = "/Users/keita.atticot/Google Drive/My Drive/obsidian",
       },
-      {
-        name = "work",
-        path = "~/vaults/work",
-      },
     },
 
     -- see below for full list of options 👇
