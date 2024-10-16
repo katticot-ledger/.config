@@ -6,3 +6,6 @@ map("n", "<leader><tab>r", "<cmd>ObsidianQuickSwitch<cr>", { desc = "ObsidianQui
 map("n", "<leader><tab>t", "<cmd>ObsidianToday<cr>", { desc = "ObsidianToday" })
 map("n", "<leader><tab>n", "<cmd>ObsidianNew<cr>", { desc = "ObsidianNew" })
 map("n", "<leader><tab>h", "<cmd>put =strftime('%c')<CR>", { desc = "Insert current date and time" })
+-- Buffer navigation with Shift-Tab (Maj-Tab) and Tab
+map("n", "<S-Tab>", ":bprev<CR>", { desc = "Previous buffer", noremap = true, silent = true })
+map("n", "<Tab>", ":bnext<CR>", { desc = "Next buffer", noremap = true, silent = true })
