@@ -44,7 +44,7 @@ config.color_scheme = "Darcula (base16)"
 config.window_background_image = "/Users/keita.atticot/Documents/Image/wallpaper/pexels-vedad.jpg"
 --config.colors = mycoolnight
 config.font = wezterm.font("MesloLGS Nerd Font Mono")
-config.font_size = 16
+config.font_size = 20
 
 config.enable_tab_bar = false
 
