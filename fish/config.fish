@@ -1,8 +1,9 @@
 #Aliases
 
 # Initialize zoxide for fish shell
-zoxide init fish | source
 fish_add_path /opt/homebrew/sbin
+fish_add_path /opt/homebrew/bin
+zoxide init fish | source
 # Initialize starship prompt for fish shell
 starship init fish | source
 
@@ -46,3 +47,5 @@ if not string match -q -- $PNPM_HOME $PATH
 end
 # pnpm end
 #
+
+eval "$(/opt/homebrew/bin/brew shellenv)"
