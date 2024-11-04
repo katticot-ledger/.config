@@ -20,7 +20,7 @@ bind \cl clear-screen
 # Check if the environment variable for JIRA_API_TOKEN is already set
 if not set -q JIRA_API_TOKEN
     # If it's not set, retrieve the JIRA API token from 1Password and store it as a universal variable
-    set -Ux JIRA_API_TOKEN (op item get lp36b44ukwzo5f4xzkkku7ywgq --fields token)
+    set -Ux JIRA_API_TOKEN (op item get ocj3glcbzdaxevswcn2kvrmx3i --fields token)
 end
 
 # Check if the environment variable for GH_TOKEN is already set
