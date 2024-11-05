@@ -17,12 +17,15 @@ bind \cg 'git diff; commandline -f repaint'
 bind \cl clear-screen
 
 
+# Set Jira secrets
+set -Ux JIRA_USERNAME keita.atticot@ledger.fr 
 # Check if the environment variable for JIRA_API_TOKEN is already set
 if not set -q JIRA_API_TOKEN
     # If it's not set, retrieve the JIRA API token from 1Password and store it as a universal variable
     set -Ux JIRA_API_TOKEN (op item get ocj3glcbzdaxevswcn2kvrmx3i --fields token)
 end
 
+# Set Github token
 # Check if the environment variable for GH_TOKEN is already set
 if not set -q GH_TOKEN
     # If it's not set, retrieve the GitHub token from 1Password and store it as a universal variable
@@ -30,8 +33,6 @@ if not set -q GH_TOKEN
 end
 
 # Set other environment variables
-set -Ux JIRA_USERNAME keita.atticot@ledger.fr
-# Set Github token
 
 # Extend PATH with Python binaries directory
 set -gx PATH /Users/keita.atticot/Library/Python/3.9/bin $PATH
