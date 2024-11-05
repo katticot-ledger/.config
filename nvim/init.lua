@@ -184,6 +184,11 @@ require('lazy').setup({
 
       alpha.setup(dashboard.opts)
     end,
+    'L3MON4D3/LuaSnip',
+    -- follow latest release.
+    version = 'v2.*', -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+    -- install jsregexp (optional!).
+    build = 'make install_jsregexp',
   },
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
