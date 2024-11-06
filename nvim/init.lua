@@ -811,6 +811,7 @@ require('lazy').setup({
   { import = 'custom.plugins.oil' },
   { import = 'custom.plugins.alpha' },
   { import = 'custom.plugins.markdown' },
+  { import = 'custom.plugins.ai' },
   { import = 'custom.plugins.autoformat' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
