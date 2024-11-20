@@ -75,7 +75,7 @@ vim.opt.scrolloff = 20
 --  See `:help vim.keymap.set()`
 --
 -- Quit Neovim
-vim.keymap.set('n', '<leader>qq', '<cmd>qa<CR>', { desc = 'Quit Neovim' })
+vim.keymap.set('n', '<leader>aa', '<cmd>qa<CR>', { desc = 'Quit Neovim' })
 
 -- Save
 vim.keymap.set('n', '<C-s>', '<cmd>w<CR>', { desc = 'Save' })
@@ -87,8 +87,12 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Open Oil navigotor
-vim.keymap.set('n', '<leader>e', '<cmd>Oil<CR>', { desc = 'Open Oil' })
+-- Open Mini files navigator
+vim.keymap.set('n', '<leader>e', '<cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>', { desc = 'Open Mini.files', noremap = true, silent = true })
+vim.keymap.set('n', '<CR>', function()
+  require('mini.files').synchronize()
+  require('mini.files').go_in()
+end, { desc = 'Enter directory and auto-save' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -127,7 +131,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -139,19 +142,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
--- [[ Configure and install plugins ]]
---
---  To check the current status of your plugins, run
---    :Lazy
---
---  You can press `?` in this menu for help. Use `:q` to close the window
---
---  To update plugins you can run
---    :Lazy update
---
--- NOTE: Here is where you install your plugins.
 require('lazy').setup({
-  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -368,9 +359,6 @@ require('lazy').setup({
   },
   {
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    -- NOTE
-    -- TODO
-    -- NOTE: You can change these options as you wish!
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
@@ -381,8 +369,17 @@ require('lazy').setup({
   },
   { 'EdenEast/nightfox.nvim', lazy = true },
   { 'navarasu/onedark.nvim', lazy = true },
-  -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VeryLazy', dependencies = { 'nvim-lua/plenary.nvim' } },
+  {
+    'folke/todo-comments.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+  },
+  { 'echasnovski/mini.comment', version = '*', opts = {} },
+  --
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
@@ -417,36 +414,8 @@ require('lazy').setup({
         return '%2l:%-2v'
       end
 
-      -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
-  },
-
-  { -- Highlight, edit, and navigate code
-    'nvim-treesitter/nvim-treesitter',
-    build = ':TSUpdate',
-    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
-      event = { 'BufRead', 'BufNewFile' },
-    },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
@@ -470,15 +439,16 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --{ import = 'custom.plugins' },
-  { import = 'custom.plugins.oil' },
+  -- { import = 'custom.plugins.oil' },
   { import = 'custom.plugins.alpha' },
   { import = 'custom.plugins.markdown' },
-  { import = 'custom.plugins.ai' },
   { import = 'custom.plugins.autoformat' },
-  --
   { import = 'custom.plugins.lspkind' },
   { import = 'custom.plugins.autocompletion' },
-  { import = 'custom.plugins.lsp' },
+  { import = 'custom.plugins.ide' },
+  { import = 'custom.plugins.flash' },
+  { import = 'custom.plugins.noice' },
+  { import = 'custom.plugins.files' },
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
@@ -522,5 +492,24 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_netrwSettings = 1
 vim.g.loaded_netrwFileHandlers = 1
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = '*.mdx',
+  command = 'set filetype=markdown',
+})
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+--  NOTE:
+--
+-- Restore cursor to last position when reopening a file
+--
+vim.api.nvim_create_autocmd('BufReadPost', {
+  callback = function()
+    local last_pos = vim.fn.line [['"]]
+    local total_lines = vim.fn.line '$'
+
+    -- Only restore position if it is within file bounds
+    if last_pos > 0 and last_pos <= total_lines then
+      vim.cmd 'normal! g`"' -- Go to the last known cursor position
+    end
+  end,
+})
