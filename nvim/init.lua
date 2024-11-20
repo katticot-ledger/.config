@@ -65,6 +65,8 @@ vim.opt.inccommand = 'split'
 
 -- Show which line your cursor is on
 vim.opt.cursorline = true
+-- Set the highlight style for the cursor line
+vim.api.nvim_set_hl(0, 'CursorLine', { ctermbg = 0, bg = '#3b82f6' })
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 20
@@ -372,7 +374,7 @@ require('lazy').setup({
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
-      vim.cmd.colorscheme 'tokyonight-storm'
+      vim.cmd.colorscheme 'tokyonight-moon'
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
