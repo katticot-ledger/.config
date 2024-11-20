@@ -71,12 +71,12 @@ ctrl + alt - q : brew services stop yabai
 ctrl + alt - s : brew services start yabai
 ctrl + alt - r : brew services restart yabai
 
-# open terminal, blazingly fast compared to iTerm/Hyper
-ctrl - return : open -a /Applications/kitty.app/Contents/MacOS/kitty 
+# open terminal
+ctrl - return : osascript -e 'tell application "WezTerm" to activate' || open -a WezTerm
 
 # open qutebrowser
 cmd + shift - return : ~/Scripts/qtb.sh
 
 shift + cmd - a : open -a /Applications/Arc.app/Contents/MacOS/Arc
-shift + cmd - r : open -a /Applications/kitty.app/Contents/MacOS/kitty
+shift + cmd - r : open -a /Applications/WezTerm.app/Contents/MacOS/wezterm
 
