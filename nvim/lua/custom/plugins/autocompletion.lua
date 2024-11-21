@@ -6,10 +6,18 @@ local blink_cmp_opts = {
   highlight = {
     use_nvim_cmp_as_default = true, -- Use nvim-cmp highlight groups as defaults
   },
+  windows = {
+    autocomplete = {
+      -- Width of the autocomplete window
+      width = 60,
+      -- Height of the autocomplete window
+      height = 15,
+      border = 'rounded', -- Border style of the autocomplete window
+    },
+  },
 
   -- Font variant: 'mono' for Nerd Font Mono or 'normal' for Nerd Font
   nerd_font_variant = 'mono',
-
   -- Experimental signature help support
   trigger = { signature_help = { enabled = true } },
 }
