@@ -6,6 +6,10 @@
 	name = Keita ATTICOT
 [alias]
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	co = checkout
+	cob = checkout -b
+	tidy-up = !git checkout main && git branch | grep -v "main" | xargs git branch -D
+  
 [core]
 	editor = nvim
 	excludesfile = /Users/keita.atticot/.config/.gitignore
