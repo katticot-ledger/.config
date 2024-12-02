@@ -79,5 +79,4 @@ return {
     'hrsh7th/cmp-cmdline',
     config = cmp_cmdline_config, -- Use the defined CMP command-line configuration function
   },
-  { 'github/copilot.vim' },
 }

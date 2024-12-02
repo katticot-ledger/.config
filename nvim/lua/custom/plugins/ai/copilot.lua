@@ -1,3 +1,4 @@
+vim.g.copilot_filetypes = { markdown = false }
 local copilotLuaConfig = {
   'zbirenbaum/copilot.lua',
   cmd = 'Copilot',
@@ -6,7 +7,7 @@ local copilotLuaConfig = {
     suggestion = { enabled = false },
     panel = { enabled = false },
     filetypes = {
-      markdown = true,
+      markdown = false,
       help = true,
     },
   },
@@ -28,6 +29,17 @@ local copilotChatConfig = {
   cmd = { 'Copilot', 'CopilotChat' },
 }
 
+local copilot_cmp = {
+  'zbirenbaum/copilot-cmp',
+  config = function()
+    require('copilot_cmp').setup()
+  end,
+}
+
+local Copilot = { 'github/copilot.vim' }
+
 return {
   copilotChatConfig,
+  copilot_cmp,
+  Copilot,
 }
