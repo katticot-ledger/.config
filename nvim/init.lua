@@ -439,7 +439,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --{ import = 'custom.plugins' },
-  -- { import = 'custom.plugins.oil' },
+  { import = 'custom.plugins.oil' },
   { import = 'custom.plugins.alpha' },
   { import = 'custom.plugins.markdown' },
   { import = 'custom.plugins.autoformat' },
@@ -449,6 +449,7 @@ require('lazy').setup({
   { import = 'custom.plugins.flash' },
   { import = 'custom.plugins.noice' },
   { import = 'custom.plugins.files' },
+  { import = 'custom.plugins.obsidian' },
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
