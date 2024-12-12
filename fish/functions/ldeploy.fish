@@ -35,7 +35,7 @@ function ldeploy -d "Deploy and manage ledger-vault instances" -a name -a useTel
     end
 
     # Bake the ledger-vault with the specified or default salt value
-    ledger-vault bake --preset beatles --minivaultURL https://$name.minivault.ledger-sbx.com -s $salt
+    ledger-vault bake --preset sci --minivaultURL https://$name.minivault.ledger-sbx.com -s $salt
 
     # Handle telepresence if requested
     if test "$useTelepresence" = true
