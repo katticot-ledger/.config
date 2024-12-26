@@ -42,7 +42,7 @@ return {
     },
   },
   cmd = { 'Oil' }, -- Only loads when the :Oil command is executed
-  keys = {
-    { '<leader>e', '<cmd>Oil<CR>', desc = 'Open Oil' },
-  },
+  -- keys = {
+  -- { '<leader>e', '<cmd>Oil<CR>', desc = 'Open Oil' },
+  -- },
 }
