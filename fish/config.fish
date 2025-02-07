@@ -1,52 +1,90 @@
-#Aliases
+# ===========================================
+# 🛠️ Aliases & Environment Setup for Fish 🐟
+# ===========================================
 
-# Initialize zoxide for fish shell
+# 🏗️ Add Homebrew paths to Fish shell
 fish_add_path /opt/homebrew/sbin
 fish_add_path /opt/homebrew/bin
+
+# 🚀 Initialize Zoxide (smart directory jumping)
 zoxide init fish | source
-# Initialize starship prompt for fish shell
+
+# ✨ Initialize Starship prompt (beautiful terminal UI)
 starship init fish | source
 
-# Global Git configuration for excludes file
+# 📝 Set the default editor to Neovim (nvim)
+set -Ux EDITOR nvim
+
+# 🛑 Global Git configuration - Set excludes file
 git config --global core.excludesfile ~/.config/.gitignore
 
-# Set environment variable for VAULT_WORKSPACE_DIR
+# 📂 Define workspace directory for VAULT
 set VAULT_WORKSPACE_DIR /Users/keita.atticot/Code/Ledger/vault
+
+# ===========================
+# ⌨️ Custom Keybindings 🎹
+# ===========================
+
+# 🔄 Open Neovim with Ctrl + N
 bind \cn nvims
+
+# 🔍 Show Git diff with Ctrl + G, then repaint the command line
 bind \cg 'git diff; commandline -f repaint'
+
+# 🧼 Clear screen with Ctrl + L
 bind \cl clear-screen
 
+# 📂 Quick Directory Search with Ctrl + F
+function __fzf_fdir
+    fdir
+end
+bind \cf __fzf_fdir
 
-# Set Jira secrets
-set -Ux JIRA_USERNAME keita.atticot@ledger.fr 
-# Check if the environment variable for JIRA_API_TOKEN is already set
+# ===========================
+# 🔐 Secrets & API Tokens 🛡️
+# ===========================
+
+# 📝 Set Jira Username
+set -Ux JIRA_USERNAME keita.atticot@ledger.fr
+
+# 🔑 Retrieve and set JIRA API Token securely from 1Password (if not already set)
 if not set -q JIRA_API_TOKEN
-    # If it's not set, retrieve the JIRA API token from 1Password and store it as a universal variable
     set -Ux JIRA_API_TOKEN (op item get ocj3glcbzdaxevswcn2kvrmx3i --fields token)
 end
 
-# Set Github token
-# Check if the environment variable for GH_TOKEN is already set
+# 🔑 Retrieve and set GitHub API Token securely from 1Password (if not already set)
 if not set -q GH_TOKEN
-    # If it's not set, retrieve the GitHub token from 1Password and store it as a universal variable
     set -Ux GH_TOKEN (op item get hit73pl5zuvp7ct5zvkrrqrwn4 --fields token)
 end
 
-# Set other environment variables
+# 🔑 Retrieve and set Anthropic API Key securely from 1Password (if not already set)
+if not set -q ANTHROPIC_API_KEY
+    set -Ux ANTHROPIC_API_KEY (op item get 7c7ddeemjohrphdgxvtphjw6c4 --fields "api key")
+end
 
-# Extend PATH with Python binaries directory
+# ===========================
+# 🌍 Environment Variables 🏗️
+# ===========================
+
+# 🐍 Extend PATH to include Python user binaries
 set -gx PATH /Users/keita.atticot/Library/Python/3.9/bin $PATH
 
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-set --export --prepend PATH "/Users/keita.atticot/.rd/bin"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+# ===========================
+# 📦 Package Manager: pnpm 🚀
+# ===========================
 
-# pnpm
+# Set the pnpm home directory
 set -gx PNPM_HOME "/Users/keita.atticot/Library/pnpm"
+
+# Add pnpm to the PATH if not already included
 if not string match -q -- $PNPM_HOME $PATH
     set -gx PATH "$PNPM_HOME" $PATH
 end
-# pnpm end
-#
+
+# ===========================
+# 🍺 Initialize Homebrew 🏗️
+# ===========================
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# ✅ Configuration Loaded Successfully! 🎉
