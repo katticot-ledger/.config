@@ -1,0 +1,8 @@
+font-family="CaskaydiaCove Nerd Font"
+font-size=18
+background = 282c34
+foreground = ffffff
+window-height = 40
+window-width= 140
+keybind = global:ctrl+a=toggle_quick_terminal
+
