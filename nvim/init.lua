@@ -72,8 +72,26 @@ vim.api.nvim_set_hl(0, 'CursorLine', { ctermbg = 0, bg = '#3b82f6' })
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 20
+function get_github_permalink()
+  local line_nr = vim.fn.line '.'
+  local file_path = vim.fn.expand '%:p'
+  local git_root = vim.fn.system('cd ' .. vim.fn.expand '%:p:h' .. ' && git rev-parse --show-toplevel'):gsub('\n', '')
+  local commit_hash = vim.fn.system('cd ' .. vim.fn.expand '%:p:h' .. ' && git rev-parse HEAD'):gsub('\n', '')
+  local remote_url = 'https://github.com/LedgerHQ'
 
+  local rel_path = file_path:gsub(git_root .. '/', ''):gsub('.*/sre%-argocd/', '')
 
+  local permalink = string.format('%s/%s/blob/%s/%s#L%s', remote_url, 'sre-argocd', commit_hash, rel_path, line_nr)
+
+  -- Copy to clipboard
+  vim.fn.setreg('+', permalink)
+
+  -- Open in Arc browser
+  vim.fn.system('open -a Arc "' .. permalink .. '"')
+  print 'Opened in Arc!'
+end
+
+vim.keymap.set('n', '<leader>gl', get_github_permalink, { noremap = true })
 -- ==================================================
 -- 🔑 [[ BASIC KEYMAPS ]]
 -- ==================================================
