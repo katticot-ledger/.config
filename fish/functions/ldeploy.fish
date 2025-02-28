@@ -22,7 +22,7 @@ function ldeploy -d "Deploy and manage ledger-vault instances" -a name -a useTel
     nvm use 16
 
     # Deploy ledger-vault in the background
-    ledger-vault deploy --name $name --owner @keita --expirationHours 24 --remoteURL https://remote.minivault.ledger-sbx.com &
+    ledger-vault deploy --name $name --owner @keita --expirationHours 48 --remoteURL https://remote.minivault.ledger-sbx.com &
     set pid $last_pid # Capture the PID
 
     # Wait for deployment to complete
@@ -36,6 +36,8 @@ function ldeploy -d "Deploy and manage ledger-vault instances" -a name -a useTel
 
     # Bake the ledger-vault with the specified or default salt value
     ledger-vault bake --preset sci --minivaultURL https://$name.minivault.ledger-sbx.com -s $salt
+    VAULT_WORKSPACE_DIR=/Users/keita.atticot/Code/Ledger/vault ledger-vault proxy https://$name.minivault.ledger-sbx.com
+
 
     # Handle telepresence if requested
     if test "$useTelepresence" = true

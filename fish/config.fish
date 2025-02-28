@@ -88,3 +88,4 @@ end
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # ✅ Configuration Loaded Successfully! 🎉
+fish_add_path $HOME/.local/bin

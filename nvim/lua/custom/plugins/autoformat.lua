@@ -47,7 +47,7 @@ return {
         timeout_ms = 3000,
         async = false, -- Synchronous formatting by default
         quiet = false, -- Display errors
-        lsp_format = 'fallback', -- Use fallback for unsupported file types
+        lsp_format = 'false', -- Use fallback for unsupported file types
       },
       format_on_save = function(bufnr)
         local non_standard_filetypes = { c = true, cpp = true }
@@ -61,8 +61,10 @@ return {
         lua = { 'stylua' },
         fish = { 'fish_indent' },
         sh = { 'shfmt' },
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'eslint', 'prettier' },
+        typescript = { 'eslint', 'prettier' },
+        javascriptreact = { 'eslint', 'prettier' },
+        typescriptreact = { 'eslint', 'prettier' },
         json = { 'prettierd', 'prettier', stop_after_first = true },
       },
       formatters = {

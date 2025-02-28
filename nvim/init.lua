@@ -72,6 +72,8 @@ vim.api.nvim_set_hl(0, 'CursorLine', { ctermbg = 0, bg = '#3b82f6' })
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 20
+
+-- TODO to delete
 function get_github_permalink()
   local line_nr = vim.fn.line '.'
   local file_path = vim.fn.expand '%:p'
@@ -91,7 +93,6 @@ function get_github_permalink()
   print 'Opened in Arc!'
 end
 
-vim.keymap.set('n', '<leader>gl', get_github_permalink, { noremap = true })
 -- ==================================================
 -- 🔑 [[ BASIC KEYMAPS ]]
 -- ==================================================
