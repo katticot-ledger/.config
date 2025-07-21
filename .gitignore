@@ -35,3 +35,14 @@ Temporary Items
 .aider*
 yarn/
 fish/fish_variables
+
+### Sensitive/Private Files ###
+# Google Cloud credentials (sensitive)
+gcloud/access_tokens.db
+gcloud/application_default_credentials.json
+gcloud/.last_*
+
+### Backup/Temp Files ###
+# tmux plugin nested git repos (managed as submodules)
+tmux/plugins/dracula-tmux/.git/
+tmux/resurrect/

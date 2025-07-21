@@ -62,6 +62,7 @@ if not set -q ANTHROPIC_API_KEY
     set -Ux ANTHROPIC_API_KEY (op item get 7c7ddeemjohrphdgxvtphjw6c4 --fields "api key")
 end
 
+set -x GOOGLE_APPLICATION_CREDENTIALS /Users/ke/.config/gcloud/application_default_credentials.json
 # ===========================
 # 🌍 Environment Variables 🏗️
 # ===========================
@@ -74,7 +75,7 @@ set -gx PATH /Users/keita.atticot/Library/Python/3.9/bin $PATH
 # ===========================
 
 # Set the pnpm home directory
-set -gx PNPM_HOME "/Users/keita.atticot/Library/pnpm"
+set -gx PNPM_HOME /Users/ke/Library/pnpm
 
 # Add pnpm to the PATH if not already included
 if not string match -q -- $PNPM_HOME $PATH
@@ -89,3 +90,11 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # ✅ Configuration Loaded Successfully! 🎉
 fish_add_path $HOME/.local/bin
+
+# Added by Windsurf
+fish_add_path /Users/ke/.codeium/windsurf/bin
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+
+set --export PATH $BUN_INSTALL/bin $PATH
