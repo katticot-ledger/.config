@@ -138,8 +138,7 @@ def main():
             "dust:brew"
         ],
         "💻 Code Editors": [
-            "neovim:brew",
-            "zed:cask"
+            "neovim:brew"
         ],
         "🔧 Development Tools": [
             "git:brew",

@@ -20,7 +20,6 @@ This repository contains my complete development environment configuration with 
 
 ### 💻 Code Editors
 - **[Neovim](https://neovim.io/)** - Hyperextensible Vim-based editor with lazy.nvim
-- **[Zed](https://zed.dev/)** - High-performance collaborative code editor
 
 ### 🔧 Development Tools
 - **[Git](https://git-scm.com/)** - Version control with custom configuration
@@ -108,7 +107,6 @@ brew install fish starship atuin broot eza fzf
 
 # 💻 Code Editors
 brew install neovim
-brew install --cask zed
 
 # 🔧 Development Tools
 brew install git gh
@@ -155,7 +153,6 @@ fish
 
 #### 💻 Editor Setup  
 - **Neovim**: Launch `nvim` - plugins install automatically via lazy.nvim
-- **Zed**: Settings will be applied from `zed/settings.json`
 
 #### 🔧 Development Tools
 - **GitHub CLI**: Run `gh auth login` to authenticate
@@ -195,8 +192,7 @@ Some files need manual setup:
 │   ├── broot/              # Interactive file tree navigator
 │   └── starship.toml       # Cross-shell prompt configuration
 ├── 💻 Code Editors  
-│   ├── nvim/               # Neovim configuration with lazy.nvim
-│   └── zed/                # Zed editor settings and themes
+│   └── nvim/               # Neovim configuration with lazy.nvim
 ├── 🔧 Development Tools
 │   ├── git/                # Git configuration and aliases
 │   ├── gh/                 # GitHub CLI configuration
