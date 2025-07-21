@@ -189,12 +189,11 @@ def main():
     while True:
         print(f"\n{Colors.WHITE}{Colors.BOLD}Available Actions:{Colors.END}")
         print("1. 📦 Install all packages")
-        print("2. 🎯 Install packages by category") 
-        print("3. 📋 List all packages")
-        print("4. 🔧 Run post-installation setup")
-        print("5. ❌ Exit")
+        print("2. 📋 List all packages")
+        print("3. 🔧 Run post-installation setup")
+        print("4. ❌ Exit")
         
-        choice = input(f"\n{Colors.YELLOW}Enter your choice (1-5): {Colors.END}").strip()
+        choice = input(f"\n{Colors.YELLOW}Enter your choice (1-4): {Colors.END}").strip()
         
         if choice == "1":
             print(f"\n{Colors.MAGENTA}Installing all packages...{Colors.END}")
@@ -202,20 +201,6 @@ def main():
             post_install_setup()
             
         elif choice == "2":
-            print(f"\n{Colors.WHITE}{Colors.BOLD}Available Categories:{Colors.END}")
-            for i, category in enumerate(PACKAGES.keys(), 1):
-                print(f"{i}. {category}")
-            
-            cat_choice = input(f"\n{Colors.YELLOW}Select category (1-{len(PACKAGES)}): {Colors.END}").strip()
-            
-            try:
-                cat_index = int(cat_choice) - 1
-                category = list(PACKAGES.keys())[cat_index]
-                install_packages(PACKAGES, category)
-            except (ValueError, IndexError):
-                print(f"{Colors.RED}Invalid category selection!{Colors.END}")
-                
-        elif choice == "3":
             print(f"\n{Colors.WHITE}{Colors.BOLD}📋 Complete Package List:{Colors.END}")
             for category, packages in PACKAGES.items():
                 print(f"\n{Colors.CYAN}{category}{Colors.END}")
@@ -224,15 +209,15 @@ def main():
                     install_type = package_info.split(":")[1]
                     print(f"  • {package_name} ({install_type})")
                     
-        elif choice == "4":
+        elif choice == "3":
             post_install_setup()
             
-        elif choice == "5":
+        elif choice == "4":
             print(f"{Colors.GREEN}Goodbye! 👋{Colors.END}")
             break
             
         else:
-            print(f"{Colors.RED}Invalid choice! Please enter 1-5.{Colors.END}")
+            print(f"{Colors.RED}Invalid choice! Please enter 1-4.{Colors.END}")
 
 
 if __name__ == "__main__":

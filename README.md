@@ -91,7 +91,6 @@ python3 main.py
 
 The script provides:
 - 📦 Install all packages at once
-- 🎯 Install packages by category  
 - 📋 List all available packages
 - 🔧 Post-installation setup automation
 
