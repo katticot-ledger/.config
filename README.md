@@ -56,8 +56,8 @@ Install essential tools first:
 # Install Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Git and SSH tools
-brew install git openssh
+# Install Git, SSH tools, and Python3
+brew install git openssh python3
 
 # Install Fish shell
 brew install fish
