@@ -4,15 +4,47 @@ Personal configuration files for development environment
 
 ## Overview
 
-This repository contains my complete development environment configuration, including:
+This repository contains my complete development environment configuration with tools organized by function:
 
-- **Fish Shell** - Configuration, functions, and completions
-- **Neovim** - Editor configuration with lazy.nvim plugins
-- **Tmux** - Terminal multiplexer with custom plugins
-- **Git** - Version control settings
-- **Zed** - Modern code editor settings
-- **Google Cloud SDK** - Development tool configurations
-- **Various CLI Tools** - Starship, Raycast, window managers, etc.
+### 🖥️ Terminal Emulators & Multiplexers
+- **[Ghostty](https://ghostty.org/)** - Fast, native terminal emulator
+- **[Kitty](https://sw.kovidgoyal.net/kitty/)** - GPU-accelerated terminal emulator
+- **[WezTerm](https://wezfurlong.org/wezterm/)** - GPU-accelerated cross-platform terminal
+- **[Tmux](https://github.com/tmux/tmux)** - Terminal multiplexer with custom plugins
+
+### 🐚 Shell & Command Line
+- **[Fish](https://fishshell.com/)** - Friendly interactive shell with completions
+- **[Starship](https://starship.rs/)** - Cross-shell prompt with customization
+- **[Atuin](https://atuin.sh/)** - Shell history replacement with sync
+- **[Broot](https://dystroy.org/broot/)** - Interactive tree view file navigator
+
+### 💻 Code Editors
+- **[Neovim](https://neovim.io/)** - Hyperextensible Vim-based editor with lazy.nvim
+- **[Zed](https://zed.dev/)** - High-performance collaborative code editor
+
+### 🔧 Development Tools
+- **[Git](https://git-scm.com/)** - Version control with custom configuration
+- **[GitHub CLI](https://cli.github.com/)** - Command-line GitHub integration
+- **[GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli)** - AI-powered command suggestions
+- **[GitHub Dash](https://github.com/dlvhdr/gh-dash)** - GitHub dashboard in terminal
+- **[Google Cloud SDK](https://cloud.google.com/sdk)** - Cloud development and deployment
+
+### 🪟 Window Management (macOS)
+- **[Yabai](https://github.com/koekeishiya/yabai)** - Tiling window manager
+- **[SKHD](https://github.com/koekeishiya/skhd)** - Simple hotkey daemon
+- **[SketchyBar](https://github.com/FelixKratz/SketchyBar)** - Custom macOS menu bar
+
+### 📊 System Monitoring
+- **[Btop](https://github.com/aristocratos/btop)** - Resource monitor with beautiful interface
+- **[WTF](https://wtfutil.com/)** - Personal information dashboard
+
+### 🚀 Productivity & Utilities
+- **[Raycast](https://raycast.com/)** - Extensible launcher and productivity tool
+- **[1Password CLI](https://developer.1password.com/docs/cli)** - Password and secrets management
+- **Homebrew Package Manager Script** - Custom Python script for package management
+
+### ⌨️ Hardware Configuration
+- **[Glove80](https://www.moergo.com/collections/glove80-keyboards)** - Ergonomic keyboard layout and configuration
 
 ## Quick Setup After Computer Reset
 
@@ -45,17 +77,67 @@ git clone git@github.com:katticot-ledger/.config.git ~/.config
 git clone https://github.com/katticot-ledger/.config.git ~/.config
 ```
 
-### 3. Essential Post-Clone Setup
+### 3. Install Development Tools
+
+#### Option A: Automated Installation (Recommended)
+
+Use the included Python installation script for an interactive setup:
 
 ```bash
-# Install additional tools
-brew install neovim tmux starship eza fzf
+# Run the comprehensive installation tool
+cd ~/.config
+python3 main.py
+```
 
-# Install Bun (JavaScript runtime)
+The script provides:
+- 📦 Install all packages at once
+- 🎯 Install packages by category  
+- 📋 List all available packages
+- 🔧 Post-installation setup automation
+
+#### Option B: Manual Installation by Category
+
+```bash
+# 🖥️ Terminal Emulators & Multiplexers
+brew install --cask ghostty
+brew install kitty
+brew install --cask wezterm
+brew install tmux
+
+# 🐚 Shell & Command Line Tools
+brew install fish starship atuin broot eza fzf
+
+# 💻 Code Editors
+brew install neovim
+brew install --cask zed
+
+# 🔧 Development Tools
+brew install git gh
+gh extension install github/gh-copilot
+gh extension install dlvhdr/gh-dash
+brew install --cask google-cloud-sdk
+
+# 🪟 Window Management (macOS)
+brew install koekeishiya/formulae/yabai
+brew install koekeishiya/formulae/skhd
+brew tap FelixKratz/formulae
+brew install sketchybar
+
+# 📊 System Monitoring
+brew install btop
+brew install wtfutil
+
+# 🚀 Productivity & Utilities
+brew install --cask raycast
+brew install 1password-cli
+
+# JavaScript Runtime & Package Managers
 curl -fsSL https://bun.sh/install | bash
-
-# Install pnpm
 npm install -g pnpm
+
+# Make Fish the default shell
+echo $(which fish) | sudo tee -a /etc/shells
+chsh -s $(which fish)
 
 # Start Fish shell to load configuration
 fish
@@ -63,11 +145,32 @@ fish
 
 ### 4. Tool-Specific Setup
 
-- **Neovim**: Launch `nvim` - plugins will install automatically via lazy.nvim
+#### 🖥️ Terminal Configuration
+- **Ghostty/Kitty/WezTerm**: Configurations will be loaded automatically
 - **Tmux**: Start tmux - plugins in `tmux/plugins/` are included
+
+#### 🐚 Shell Setup
+- **Fish**: Configuration loads automatically with completions and functions
+- **Starship**: Prompt configuration from `starship.toml`
+- **Atuin**: Run `atuin register` and `atuin login` for history sync
+
+#### 💻 Editor Setup  
+- **Neovim**: Launch `nvim` - plugins install automatically via lazy.nvim
+- **Zed**: Settings will be applied from `zed/settings.json`
+
+#### 🔧 Development Tools
+- **GitHub CLI**: Run `gh auth login` to authenticate
+- **GitHub Copilot**: Run `gh copilot auth` after installing extension  
 - **Google Cloud**: Run `gcloud auth login` and configure projects
-- **1Password**: Install and configure for secret management
-- **SSH Keys**: Generate new keys and add to GitHub
+
+#### 🪟 Window Management (macOS)
+- **Yabai**: May require System Integrity Protection adjustments
+- **SKHD**: Start with `brew services start skhd`  
+- **SketchyBar**: Start with `brew services start sketchybar`
+
+#### 🚀 Productivity Tools
+- **Raycast**: Import settings and extensions manually
+- **1Password**: Run `op signin` and configure vault access
 
 ### 5. Additional Configurations
 
@@ -78,18 +181,46 @@ Some files need manual setup:
 - **Shell History**: Will rebuild over time
 - **Application-Specific**: Raycast, window managers may need reconfiguration
 
-## Structure
+## Directory Structure
 
 ```
 .config/
-├── fish/           # Fish shell configuration
-├── nvim/           # Neovim configuration  
-├── tmux/           # Tmux configuration and plugins
-├── git/            # Git configuration
-├── zed/            # Zed editor settings
-├── gcloud/         # Google Cloud SDK configs
-├── starship.toml   # Prompt configuration
-└── ...             # Other tool configurations
+├── 🖥️ Terminal Emulators & Multiplexers
+│   ├── ghostty/            # Ghostty terminal configuration
+│   ├── kitty/              # Kitty terminal configuration  
+│   ├── wezterm/            # WezTerm configuration
+│   └── tmux/               # Tmux config and plugins
+├── 🐚 Shell & Command Line
+│   ├── fish/               # Fish shell config, functions, completions
+│   ├── atuin/              # Shell history configuration
+│   ├── broot/              # Interactive file tree navigator
+│   └── starship.toml       # Cross-shell prompt configuration
+├── 💻 Code Editors  
+│   ├── nvim/               # Neovim configuration with lazy.nvim
+│   └── zed/                # Zed editor settings and themes
+├── 🔧 Development Tools
+│   ├── git/                # Git configuration and aliases
+│   ├── gh/                 # GitHub CLI configuration
+│   ├── gh-copilot/         # GitHub Copilot CLI settings
+│   ├── gh-dash/            # GitHub dashboard configuration
+│   └── gcloud/             # Google Cloud SDK configs
+├── 🪟 Window Management (macOS)
+│   ├── yabai/              # Tiling window manager config
+│   ├── skhd/               # Hotkey daemon configuration
+│   └── sketchybar/         # Custom macOS menu bar
+├── 📊 System Monitoring
+│   ├── btop/               # System resource monitor theme
+│   └── wtf/                # Personal dashboard configuration
+├── 🚀 Productivity & Utilities
+│   ├── raycast/            # Launcher and productivity settings
+│   ├── op/                 # 1Password CLI configuration
+│   └── main.py             # Homebrew package management script
+├── ⌨️ Hardware Configuration
+│   └── glove80/            # Ergonomic keyboard layouts
+├── 🔄 Shell Integration
+│   └── zprofile            # Homebrew environment setup
+└── 📚 Documentation
+    └── README.md           # This comprehensive guide
 ```
 
 ## Security Notes
