@@ -121,8 +121,6 @@ def main():
     PACKAGES = {
         "🖥️ Terminal Emulators & Multiplexers": [
             "ghostty:cask",
-            "kitty:brew", 
-            "wezterm:cask",
             "tmux:brew"
         ],
         "🐚 Shell & Command Line": [
