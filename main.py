@@ -135,7 +135,8 @@ def main():
             "zoxide:brew",
             "bat:brew",
             "ripgrep:brew",
-            "dust:brew"
+            "dust:brew",
+            "bass:brew"
         ],
         "💻 Code Editors": [
             "neovim:brew"
