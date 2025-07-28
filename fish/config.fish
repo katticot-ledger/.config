@@ -58,7 +58,11 @@ end
 
 # 🔑 Retrieve and set GitHub API Token securely from 1Password (if not already set)
 if not set -q GH_TOKEN
-    set -Ux GH_TOKEN (op item get hit73pl5zuvp7ct5zvkrrqrwn4 --fields token)
+    set -Ux GH_TOKEN (op item get ay647wqfir6335n6krw7wzpeke --fields token --reveal)
+end
+if not set -q GITHUB_PERSONAL_ACCESS_TOKEN
+    set -Ux GITHUB_PERSONAL_ACCESS_TOKEN (op item get ay647wqfir6335n6krw7wzpeke --fields token --reveal)
+
 end
 
 # 🔑 Retrieve and set Anthropic API Key securely from 1Password (if not already set)
