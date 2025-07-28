@@ -12,18 +12,22 @@ zoxide init fish | source
 # ✨ Initialize Starship prompt (beautiful terminal UI)
 starship init fish | source
 
+# 🐟✨ Use NVM with bass in Fish (bridge Bash ➜ Fish)
+set -gx NVM_DIR ~/.config/nvm
+bass source $NVM_DIR/nvm.sh --no-use ';' nvm use --lts
+
 # 📝 Set the default editor to Neovim (nvim)
 set -Ux EDITOR nvim
 
 # 🛑 Global Git configuration - Set excludes file
 git config --global core.excludesfile ~/.config/.gitignore
 
-# 📂 Define workspace directory for VAULT
-set VAULT_WORKSPACE_DIR /Users/keita.atticot/Code/Ledger/vault
-
 # ===========================
 # ⌨️ Custom Keybindings 🎹
 # ===========================
+
+#🧠 Vim mode
+fish_vi_key_bindings
 
 # 🔄 Open Neovim with Ctrl + N
 bind \cn nvims
@@ -62,13 +66,15 @@ if not set -q ANTHROPIC_API_KEY
     set -Ux ANTHROPIC_API_KEY (op item get 7c7ddeemjohrphdgxvtphjw6c4 --fields "api key")
 end
 
-set -x GOOGLE_APPLICATION_CREDENTIALS /Users/ke/.config/gcloud/application_default_credentials.json
+set -x GOOGLE_APPLICATION_CREDENTIALS /Users/keita/.config/gcloud/application_default_credentials.json
 # ===========================
 # 🌍 Environment Variables 🏗️
 # ===========================
 
-# 🐍 Extend PATH to include Python user binaries
-set -gx PATH /Users/keita.atticot/Library/Python/3.9/bin $PATH
+# 📁 XDG Base Directory Specification - Relocate configs to ~/.config/
+set -gx ZDOTDIR ~/.config/zsh
+set -gx NPM_CONFIG_CACHE ~/.config/npm
+set -gx PNPM_STORE_PATH ~/.config/pnpm-store
 
 # ===========================
 # 📦 Package Manager: pnpm 🚀
@@ -95,6 +101,6 @@ fish_add_path $HOME/.local/bin
 fish_add_path /Users/ke/.codeium/windsurf/bin
 
 # bun
-set --export BUN_INSTALL "$HOME/.bun"
+set --export BUN_INSTALL "$HOME/.config/bun"
 
 set --export PATH $BUN_INSTALL/bin $PATH
