@@ -1,29 +1,28 @@
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 [commit]
 	gpgsign = true
 [user]
-	signingkey = E41183439FD5698DAFA4267F395501967D96E29C
-	email = keita.atticot@ledger.fr
+	email = keita.atticot@gmail.fr
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsmzmrvZTR4ecXm9VaPqy8Sfd5huMwU2VZ8wS16ss3M
 	name = Keita ATTICOT
 [alias]
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	co = checkout
 	cob = checkout -b
 	tidy-up = !git checkout main && git branch | grep -v "main" | xargs git branch -D
-  
 [core]
 	editor = nvim
-	excludesfile = /Users/ke/.config/.gitignore
+	excludesfile = /Users/keita/.config/.gitignore
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
 [init]
 	defaultBranch = main
-[gpg]
-	program = /opt/homebrew/bin/gpg
 [pull]
 	rebase = false
+	excludesfile = /Users/keita/.config/.gitignore
