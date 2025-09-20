@@ -2,18 +2,30 @@
 local wezterm = require("wezterm")
 -- This will hold the configuration.
 --
--- Function to check for existing tmux sessions
-local function start_or_attach_tmux()
-  -- Run `tmux ls` to check for active sessions
-  local result = os.execute("tmux ls > /dev/null 2>&1")
+local function tmux_has_session()
+  local success, _, code = os.execute("tmux has-session > /dev/null 2>&1")
 
-  if result == 0 then
-    -- If no sessions are found, start a new tmux session
-    return { "/opt/homebrew/bin/tmux" }
-  else
-    -- If `tmux ls` succeeded, attach to the first available session
-    return { "/opt/homebrew/bin/tmux", "a" }
+  if success == true then
+    return true
   end
+
+  if success == false or success == nil then
+    return false
+  end
+
+  if type(success) == "number" then
+    return success == 0
+  end
+
+  return code == 0
+end
+
+local function start_or_attach_tmux()
+  if tmux_has_session() then
+    return { "tmux", "attach-session", "-d" }
+  end
+
+  return { "tmux", "new-session" }
 end
 -- This will hold the configuration.
 local config = wezterm.config_builder()
