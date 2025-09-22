@@ -61,11 +61,12 @@ return {
         lua = { 'stylua' },
         fish = { 'fish_indent' },
         sh = { 'shfmt' },
-        javascript = { 'eslint', 'prettier' },
-        typescript = { 'eslint', 'prettier' },
-        javascriptreact = { 'eslint', 'prettier' },
-        typescriptreact = { 'eslint', 'prettier' },
-        json = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        markdown = { 'prettierd', 'prettier' },
+        json = { 'prettierd', 'prettier', 'jq' },
       },
       formatters = {
         prettier = {
