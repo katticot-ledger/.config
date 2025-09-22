@@ -1,4 +1,8 @@
 raycast/
+openai/
+bun/
+gcloud/
+.claude/
 op/
 ### macOS ###
 # General
