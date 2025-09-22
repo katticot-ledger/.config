@@ -1,3 +1,13 @@
+-- Helper to fetch icons from mini.icons while handling the module not being available yet
+local function get_mini_icon(kind)
+  local ok, mini_icons = pcall(require, 'mini.icons')
+  if not ok then
+    return nil, nil
+  end
+  local icon, hl = mini_icons.get('lsp', kind)
+  return icon, hl
+end
+
 -- Blink configuration
 local blink_cmp_opts = {
   -- Keymap presets: 'super-tab' for vscode-like, 'enter' for using Enter to accept
@@ -13,12 +23,12 @@ local blink_cmp_opts = {
           kind_icon = {
             ellipsis = false,
             text = function(ctx)
-              local kind_icon, _, _ = require('mini.icons').get('lsp', ctx.kind)
-              return kind_icon
+              local kind_icon = get_mini_icon(ctx.kind)
+              return kind_icon or ''
             end,
             -- Optionally, you may also use the highlights from mini.icons
             highlight = function(ctx)
-              local _, hl, _ = require('mini.icons').get('lsp', ctx.kind)
+              local _, hl = get_mini_icon(ctx.kind)
               return hl
             end,
           },
@@ -27,17 +37,6 @@ local blink_cmp_opts = {
     },
   },
 }
-
--- Blink LSP configuration
-local lspconfig_config = function(_, opts)
-  local lspconfig = require 'lspconfig'
-
-  -- Iterate over servers and set up their configurations
-  for server, config in pairs(opts.servers or {}) do
-    config.capabilities = require('blink.cmp').get_lsp_capabilities(config.capabilities)
-    lspconfig[server].setup(config)
-  end
-end
 
 return {
   {
@@ -52,10 +51,5 @@ return {
 
     -- Allows extending the enabled_providers array elsewhere
     opts_extend = { 'sources.completion.enabled_providers' },
-  },
-  {
-    'neovim/nvim-lspconfig',
-    dependencies = { 'saghen/blink.cmp' },
-    config = lspconfig_config, -- Use the defined LSP configuration function
   },
 }

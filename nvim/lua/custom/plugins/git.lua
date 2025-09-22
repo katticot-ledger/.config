@@ -85,8 +85,17 @@ return {
       { '<leader>hd', '<cmd>Gitsigns diffthis<CR>', desc = 'Diff this' },
       { '<leader>hD', '<cmd>Gitsigns diffthis ~<CR>', desc = 'Diff this ~' },
       -- Toggles
+      { '<leader>gt', '<cmd>Gitsigns toggle_current_line_blame<CR>', desc = 'Toggle Git Blame' },
       { '<leader>tb', '<cmd>Gitsigns toggle_current_line_blame<CR>', desc = 'Toggle line blame' },
       { '<leader>td', '<cmd>Gitsigns toggle_deleted<CR>', desc = 'Toggle deleted' },
+    },
+  },
+
+  {
+    'folke/snacks.nvim',
+    opts = { gitbrowse = {} },
+    keys = {
+      { '<leader>gb', function() require('snacks').gitbrowse.open() end, desc = 'Open gitbrowse' },
     },
   },
 
@@ -188,18 +197,4 @@ return {
     },
   },
 
-  -- Git Blame (optional but nice)
-  {
-    'f-person/git-blame.nvim',
-    event = 'VeryLazy',
-    keys = {
-      { '<leader>gt', '<cmd>GitBlameToggle<CR>', desc = 'Toggle Git Blame' },
-    },
-    opts = {
-      enabled = false, -- Don't enable by default
-      message_template = ' <summary> • <date> • <author>',
-      date_format = '%m-%d-%Y %H:%M:%S',
-      virtual_text_column = 1,
-    },
-  },
 }

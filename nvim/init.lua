@@ -132,13 +132,6 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- 📂 FILE NAVIGATION
 -- ==================================================
 
--- Open Mini Files navigator
-vim.keymap.set('n', '<leader>e', '<cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<CR>', { desc = 'Open Mini Files', noremap = true, silent = true })
-vim.keymap.set('n', '<CR>', function()
-  require('mini.files').synchronize()
-  require('mini.files').go_in()
-end, { desc = 'Enter directory and auto-save' })
-
 -- ==================================================
 -- 📋 COPY FILE PATH
 -- ==================================================
@@ -215,7 +208,13 @@ vim.api.nvim_create_autocmd({ 'FileChangedShellPost' }, {
   end,
 })
 require('lazy').setup({
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'NMAC427/guess-indent.nvim',
+    event = 'BufReadPre',
+    config = function()
+      require('guess-indent').setup {}
+    end,
+  },
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -436,6 +435,18 @@ require('lazy').setup({
   { 'EdenEast/nightfox.nvim', lazy = true },
   { 'navarasu/onedark.nvim', lazy = true },
   {
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    lazy = true,
+    opts = {
+      flavour = 'mocha',
+      integrations = {},
+    },
+    config = function(_, opts)
+      require('catppuccin').setup(opts)
+    end,
+  },
+  {
     'folke/todo-comments.nvim',
     dependencies = { 'nvim-lua/plenary.nvim' },
     opts = {
@@ -444,7 +455,13 @@ require('lazy').setup({
       -- refer to the configuration section below
     },
   },
-  { 'echasnovski/mini.comment', version = '*', opts = {} },
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+    config = function(_, opts)
+      require('Comment').setup(opts)
+    end,
+  },
   --
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
@@ -465,19 +482,10 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
+      -- Initialise mini.icons so that Blink and other consumers can fetch icon metadata safely
+      local icons_ok, mini_icons = pcall(require, 'mini.icons')
+      if icons_ok then
+        mini_icons.setup()
       end
 
       --  Check out: https://github.com/echasnovski/mini.nvim
@@ -498,27 +506,12 @@ require('lazy').setup({
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  --{ import = 'custom.plugins' },
-  { import = 'custom.plugins.oil' },
-  { import = 'custom.plugins.alpha' },
-  { import = 'custom.plugins.markdown' },
-  { import = 'custom.plugins.autoformat' },
-  { import = 'custom.plugins.lspkind' },
-  { import = 'custom.plugins.autocompletion' },
-  { import = 'custom.plugins.ide' },
-  { import = 'custom.plugins.flash' },
-  { import = 'custom.plugins.noice' },
-  { import = 'custom.plugins.files' },
-  { import = 'custom.plugins.lazygit' },
-  { import = 'custom.plugins.obsidian' },
-  { import = 'custom.plugins.git' },
-  { import = 'custom.plugins.ai.avante' },
+  { import = 'custom.plugins' },
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
   -- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
@@ -574,12 +567,10 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
 --
 vim.api.nvim_create_autocmd('BufReadPost', {
   callback = function()
-    local last_pos = vim.fn.line [['"]]
-    local total_lines = vim.fn.line '$'
-
-    -- Only restore position if it is within file bounds
-    if last_pos > 0 and last_pos <= total_lines then
-      vim.cmd 'normal! g`"' -- Go to the last known cursor position
+    local mark = vim.api.nvim_buf_get_mark(0, '"')
+    local lnum = mark[1]
+    if lnum > 0 and lnum <= vim.fn.line '$' then
+      vim.cmd 'normal! g`"'
     end
   end,
 })

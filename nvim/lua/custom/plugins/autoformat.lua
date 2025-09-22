@@ -22,7 +22,8 @@ end
 
 -- Check if Treesitter has a parser for the file type
 function M.has_parser(ctx)
-  return vim.treesitter.get_parser(ctx.bufnr, ctx.ft) ~= nil
+  local ok, parser = pcall(vim.treesitter.get_parser, ctx.bufnr, ctx.ft)
+  return ok and parser ~= nil
 end
 
 return {
@@ -35,7 +36,6 @@ return {
       function()
         require('conform').format { async = true, lsp_format = 'fallback' }
       end,
-      mode = '',
       desc = '[F]ormat buffer',
     },
   },
@@ -47,7 +47,7 @@ return {
         timeout_ms = 3000,
         async = false, -- Synchronous formatting by default
         quiet = false, -- Display errors
-        lsp_format = 'false', -- Use fallback for unsupported file types
+        lsp_format = false, -- Use fallback for unsupported file types
       },
       format_on_save = function(bufnr)
         local non_standard_filetypes = { c = true, cpp = true }

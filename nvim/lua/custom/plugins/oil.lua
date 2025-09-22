@@ -1,5 +1,6 @@
 return {
   'stevearc/oil.nvim',
+  event = 'VeryLazy',
   dependencies = { 'nvim-tree/nvim-web-devicons' },
   opts = {
     default_file_explorer = true,
@@ -41,8 +42,7 @@ return {
       ['g\\'] = 'actions.toggle_trash',
     },
   },
-  cmd = { 'Oil' }, -- Only loads when the :Oil command is executed
-  -- keys = {
-  -- { '<leader>e', '<cmd>Oil<CR>', desc = 'Open Oil' },
-  -- },
+  keys = {
+    { '<leader>e', '<cmd>Oil<CR>', desc = 'Open Oil' },
+  },
 }
