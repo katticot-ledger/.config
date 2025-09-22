@@ -42,6 +42,17 @@ This repository contains my complete development environment configuration with 
 - **[1Password CLI](https://developer.1password.com/docs/cli)** - Password and secrets management
 - **Homebrew Package Manager Script** - Custom Python script for package management
 
+### ☁️ Cloud & Infrastructure
+- **[AWS CLI](https://aws.amazon.com/cli/)** - AWS management from the terminal
+- **[k9s](https://k9scli.io/)** - Terminal UI for Kubernetes clusters
+- **[kubectx](https://github.com/ahmetb/kubectx)** - Switch between Kubernetes contexts and namespaces
+- **[Tunnelblick](https://tunnelblick.net/)** - OpenVPN client for macOS
+
+### 🔄 Runtime & Package Managers
+- **[nvm](https://github.com/nvm-sh/nvm)** - Node.js version manager
+- **[Yarn](https://yarnpkg.com/)** - JavaScript package manager
+- **[PDM](https://pdm.fming.dev/)** - Python package and environment manager
+
 ### ⌨️ Hardware Configuration
 - **[Glove80](https://www.moergo.com/collections/glove80-keyboards)** - Ergonomic keyboard layout and configuration
 
@@ -80,7 +91,7 @@ git clone https://github.com/katticot-ledger/.config.git ~/.config
 
 #### Option A: Automated Installation (Recommended)
 
-Use the included Python installation script for an interactive setup:
+Use the included Python installation script for an interactive setup or direct CLI control:
 
 ```bash
 # Run the comprehensive installation tool
@@ -88,10 +99,26 @@ cd ~/.config
 python3 main.py
 ```
 
-The script provides:
-- 📦 Install all packages at once
-- 📋 List all available packages
-- 🔧 Post-installation setup automation
+The script now supports both an interactive menu and command-line flags:
+
+```
+Usage: python3 main.py [options]
+
+Optional arguments:
+  --list             List categories and packages
+  --install CATEGORY Install a single category (can be repeated)
+  --install-all      Install every category without prompts
+  --post-install     Run the post-installation helpers (bun, pnpm, fish shell)
+  --update-brew      Run `brew update` and upgrade installed formulae
+```
+
+Interactive mode (run without flags) lets you:
+
+- 📦 Install every category
+- 🗂️ Install a single category
+- 📋 List packages before installing
+- 🔧 Run the post-install helpers (bun, pnpm, fish shell)
+- 🔄 Update Homebrew
 
 #### Option B: Manual Installation by Category
 
@@ -114,6 +141,10 @@ gh extension install github/gh-copilot
 gh extension install dlvhdr/gh-dash
 brew install --cask google-cloud-sdk
 
+# ☁️ Cloud & Infrastructure
+brew install awscli k9s kubectx
+brew install --cask tunnelblick
+
 # 🪟 Window Management (macOS)
 brew install koekeishiya/formulae/yabai
 brew install koekeishiya/formulae/skhd
@@ -128,7 +159,10 @@ brew install wtfutil
 brew install --cask raycast
 brew install 1password-cli
 
-# JavaScript Runtime & Package Managers
+# 🔄 Runtime & Package Managers
+brew install nvm yarn pdm
+
+# JavaScript Runtime (alternate install method)
 curl -fsSL https://bun.sh/install | bash
 npm install -g pnpm
 

@@ -12,15 +12,23 @@ zoxide init fish | source
 # ✨ Initialize Starship prompt (beautiful terminal UI)
 starship init fish | source
 
-# 🐟✨ Use NVM with bass in Fish (bridge Bash ➜ Fish)
-set -gx NVM_DIR ~/.config/nvm
-bass source $NVM_DIR/nvm.sh --no-use ';' nvm use --lts
+# 🐟✨ Node version management (fnm on macOS)
+if type -q fnm
+    fnm env --use-on-cd | source
+end
 
 # 📝 Set the default editor to Neovim (nvim)
-set -Ux EDITOR nvim
+if not set -q EDITOR
+    set -Ux EDITOR nvim
+end
 
-# 🛑 Global Git configuration - Set excludes file
-git config --global core.excludesfile ~/.config/.gitignore
+# 🛑 Global Git configuration - Set excludes file (only if missing)
+if type -q git
+    set -l __git_excludes (git config --global --get core.excludesfile 2> /dev/null)
+    if test "$__git_excludes" != "$HOME/.config/.gitignore"
+        git config --global core.excludesfile ~/.config/.gitignore
+    end
+end
 
 # ===========================
 # ⌨️ Custom Keybindings 🎹
@@ -49,7 +57,9 @@ bind \cf __fzf_fdir
 # ===========================
 
 # 📝 Set Jira Username
-set -Ux JIRA_USERNAME keita.atticot@ledger.fr
+if not set -q JIRA_USERNAME
+    set -Ux JIRA_USERNAME keita.atticot@ledger.fr
+end
 
 # 🔑 Retrieve and set JIRA API Token securely from 1Password (if not already set)
 if not set -q JIRA_API_TOKEN
