@@ -135,6 +135,7 @@ def main():
             "ripgrep:brew",
             "dust:brew",
             "bass:brew"
+            "fd:brew"
         ],
         "💻 Code Editors": [
             "neovim:brew"

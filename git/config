@@ -5,9 +5,9 @@
 [commit]
 	gpgsign = true
 [user]
-	email = keita.atticot@gmail.fr
+	email = keita.atticot@gmail.com
 	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsmzmrvZTR4ecXm9VaPqy8Sfd5huMwU2VZ8wS16ss3M
-	name = Keita ATTICOT
+	name = Keita Atticot
 [alias]
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	co = checkout

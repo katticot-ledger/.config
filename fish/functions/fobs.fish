@@ -1,5 +1,5 @@
 function fobs
-    set base_dir '/Users/keita.atticot/Library/CloudStorage/GoogleDrive-keita.atticot@ledger.fr/My\ Drive/obsidian'
+    set base_dir '/Users/keita/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian'
 
     cd $base_dir
     set selected_file (fd --exclude raycast --type f . | \

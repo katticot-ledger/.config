@@ -42,6 +42,24 @@ gcloud/access_tokens.db
 gcloud/application_default_credentials.json
 gcloud/.last_*
 
+### Package Managers & Tools ###
+# Bun cache and lockfiles
+bun/install/
+bun/cache/
+*.lockb
+
+# npm cache and logs
+npm/
+.npm/
+npm-debug.log*
+npm-error.log*
+
+# Node Version Manager (nvm)
+nvm/
+
+# Application configuration store
+configstore/
+
 ### Backup/Temp Files ###
 # tmux plugin nested git repos (managed as submodules)
 tmux/plugins/dracula-tmux/.git/
