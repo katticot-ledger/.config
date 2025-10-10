@@ -1,4 +1,64 @@
-function fzfop --description "FZF 1Password selector; copy item ID to clipboard on Enter"
+#
+# NAME
+#   fzfop - Fuzzy find 1Password items and copy ID to clipboard
+#
+# SYNOPSIS
+#   fzfop
+#
+# DESCRIPTION
+#   Provides an interactive fzf interface for browsing 1Password items and copying
+#   their IDs to the clipboard. Displays item titles and vault names for easy
+#   selection while keeping the ID handy for API operations.
+#
+# FEATURES
+#   - Lists all accessible 1Password items with titles and vault names
+#   - Fuzzy search for quick item discovery
+#   - Copies item ID to clipboard on selection (macOS pbcopy)
+#   - Secure authentication requirement before access
+#
+# OUTPUT FORMAT
+#   Display: Title<TAB>Vault Name
+#   Copied: Item ID (to clipboard)
+#
+# DEPENDENCIES
+#   op (1Password CLI)
+#   jq (JSON processor)
+#   fzf (fuzzy finder)
+#   pbcopy (macOS clipboard utility)
+#
+# PREREQUISITES
+#   - Must be signed in to 1Password with 'op signin'
+#   - 1Password CLI must be configured
+#
+# EXAMPLES
+#   fzfop                     # Launch 1Password item selector
+#
+# WORKFLOW
+#   1. Verify 1Password authentication
+#   2. Fetch items via 'op item list'
+#   3. Parse JSON to extract title, vault, and ID
+#   4. Display in fzf with title and vault columns
+#   5. Copy selected item's ID to clipboard
+#
+# KEYBOARD BINDINGS
+#   - Enter: Copy ID to clipboard and exit
+#   - ESC: Cancel without copying
+#   - Arrow keys: Navigate selection
+#
+# SECURITY NOTES
+#   - Requires 1Password authentication
+#   - Only copies item IDs, not passwords or sensitive data
+#   - IDs are useful for API operations with op CLI
+#
+# ERROR HANDLING
+#   - Checks for 1Password sign-in status
+#   - Handles empty vault gracefully
+#   - Provides feedback on successful copy operation
+#
+# SEE ALSO
+#   op(1) opai(1) anthropic(1)
+#
+function fzfop --description "Fuzzy find 1Password items and copy ID to clipboard"
     # Ensure signed in
     if not op account get >/dev/null 2>&1
         echo "You must sign in to 1Password first using 'op signin'"

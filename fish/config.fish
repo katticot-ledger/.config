@@ -66,14 +66,6 @@ if not set -q JIRA_API_TOKEN
     set -Ux JIRA_API_TOKEN (op item get ocj3glcbzdaxevswcn2kvrmx3i --fields token)
 end
 
-# 🔑 Retrieve and set GitHub API Token securely from 1Password (if not already set)
-if not set -q GH_TOKEN
-    set -Ux GH_TOKEN (op item get ay647wqfir6335n6krw7wzpeke --fields token --reveal)
-end
-if not set -q GITHUB_PERSONAL_ACCESS_TOKEN
-    set -Ux GITHUB_PERSONAL_ACCESS_TOKEN (op item get ay647wqfir6335n6krw7wzpeke --fields token --reveal)
-
-end
 
 # 🔑 Retrieve and set Anthropic API Key securely from 1Password (if not already set)
 if not set -q ANTHROPIC_API_KEY

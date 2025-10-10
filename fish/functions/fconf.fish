@@ -1,4 +1,60 @@
-function fconf --description "Blazing-fast fuzzy find & edit config files"
+#
+# NAME
+#   fconf - Blazing-fast fuzzy find and edit config files
+#
+# SYNOPSIS
+#   fconf [DIRECTORY] [QUERY...]
+#
+# DESCRIPTION
+#   Provides an ultra-fast interface for finding and editing configuration files
+#   using fd for file discovery and fzf for fuzzy selection with bat previews.
+#   Optimized for performance with minimal dependencies and fast file operations.
+#
+# OPTIONS
+#   DIRECTORY
+#       Base directory to search (defaults to $XDG_CONFIG_HOME or ~/.config)
+#
+#   QUERY...
+#       Initial search terms for fzf (everything after first argument)
+#
+# FEATURES
+#   - Hidden file discovery with symlink following
+#   - Excludes .git, node_modules, raycast directories
+#   - Live file previews with syntax highlighting
+#   - Multi-select support
+#   - Keyboard shortcuts:
+#     * Alt-p: Toggle preview
+#     * Ctrl-y: Copy path to clipboard
+#     * Ctrl-o: Reveal in Finder
+#
+# DEPENDENCIES
+#   fd (find replacement)
+#   fzf (fuzzy finder)
+#   bat (syntax highlighter)
+#   pbcopy (macOS clipboard)
+#
+# ENVIRONMENT VARIABLES
+#   EDITOR
+#       Preferred editor (defaults to nvim > vim > vi)
+#
+# EXAMPLES
+#   fconf                    # Search ~/.config with default editor
+#   fconf ~/.config          # Search specific directory
+#   fconf ~/.config fish     # Search with initial query "fish"
+#   fconf /etc nginx         # Search system nginx configs
+#
+# KEYBOARD BINDINGS
+#   In fzf interface:
+#   - Tab/Shift-Tab: Navigate multi-selection
+#   - Enter: Edit selected files
+#   - Alt-p: Toggle preview panel
+#   - Ctrl-y: Copy file path
+#   - Ctrl-o: Open containing folder
+#
+# SEE ALSO
+#   fd(1) fzf(1) bat(1) eza(1)
+#
+function fconf --description "Blazing-fast fuzzy find and edit config files"
     # Base dir: arg > $XDG_CONFIG_HOME > ~/.config
     set -l base_dir (test -n "$argv[1"]; and echo $argv[1]; or echo (test -n "$XDG_CONFIG_HOME"; and echo $XDG_CONFIG_HOME; or echo ~/.config))
 

@@ -1,4 +1,50 @@
-function ai --description "Interactive Ollama model selector with chat interface. Use -s/--select to force model selection via fzf"
+#
+# NAME
+#   ai - Interactive Ollama model selector with chat interface
+#
+# SYNOPSIS
+#   ai [OPTIONS] [PROMPT]
+#   ai set-model [MODEL_NAME]
+#   ai -s|--select [PROMPT]
+#
+# DESCRIPTION
+#   Provides an interactive interface for Ollama models with fuzzy selection via fzf.
+#   Supports model management, default model setting, and direct prompting with
+#   either interactive selection or default model usage.
+#
+# OPTIONS
+#   -s, --select, --select-model
+#       Force interactive model selection via fzf, even if default model is set
+#
+# COMMANDS
+#   set-model [MODEL_NAME]
+#       Show current default model or set a new default model
+#       Without arguments: shows current model and available models
+#       With MODEL_NAME: sets new default after verification
+#
+# ARGUMENTS
+#   PROMPT
+#       Text prompt to send directly to the model (uses default model if set)
+#
+# EXAMPLES
+#   ai                                    # Interactive mode with default model or selection
+#   ai "Explain quantum computing"        # Direct prompt with default model
+#   ai -s "Help me write Python code"     # Force model selection then prompt
+#   ai set-model                          # Show current model and available options
+#   ai set-model llama3                  # Set llama3 as default model
+#
+# ENVIRONMENT VARIABLES
+#   AI_MODEL
+#       Default model to use when no model is explicitly selected
+#
+# DEPENDENCIES
+#   ollama (required)
+#   fzf (recommended for interactive selection)
+#
+# SEE ALSO
+#   ollama(1)
+#
+function ai --description "Interactive Ollama model selector with chat interface"
     # Parse arguments
     set -l force_select 0
     set -l remaining_args

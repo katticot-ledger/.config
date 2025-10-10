@@ -1,6 +1,68 @@
 # Always installs bindings for insert and default mode for simplicity and b/c it has almost no side-effect
 # https://gitter.im/fish-shell/fish-shell?at=60a55915ee77a74d685fa6b1
-function fzf_configure_bindings --description "Installs the default key bindings for fzf.fish with user overrides passed as options."
+#
+# NAME
+#   fzf_configure_bindings - Configure fzf key bindings for Fish shell
+#
+# SYNOPSIS
+#   fzf_configure_bindings [OPTIONS]
+#
+# DESCRIPTION
+#   Installs default key bindings for fzf.fish with customizable overrides. Configures
+#   keyboard shortcuts in both insert and default modes for various fzf search functions.
+#   Provides interactive access to directory search, git log, git status, history,
+#   process list, and variable search.
+#
+# OPTIONS
+#   -h, --help              Show help message and exit
+#
+#   --directory=KEY         Override key sequence for directory search (default: Alt+f)
+#   --git_log=KEY           Override key sequence for git log search (default: Alt+l)
+#   --git_status=KEY        Override key sequence for git status search (default: Alt+s)
+#   --history=KEY           Override key sequence for history search (default: Ctrl+r)
+#   --processes=KEY         Override key sequence for process search (default: Alt+p)
+#   --variables=KEY         Override key sequence for variable search (default: Ctrl+v)
+#
+# DEFAULT KEY BINDINGS
+#   Alt+f   (_fzf_search_directory)  Fuzzy find and cd to directories
+#   Alt+l   (_fzf_search_git_log)    Search and view git commit history
+#   Alt+s   (_fzf_search_git_status) Search and view git status files
+#   Ctrl+r  (_fzf_search_history)    Search and execute command history
+#   Alt+p   (_fzf_search_processes)  Search and manage processes
+#   Ctrl+v  (_fzf_search_vars_command) Search and view shell variables
+#
+# FEATURES
+#   - Binds in both insert and default modes
+#   - Clean installation with automatic cleanup of existing bindings
+#   - Support for custom key sequences
+#   - Help system with usage information
+#
+# DEPENDENCIES
+#   fzf (fuzzy finder)
+#   fzf.fish plugin (provides the _fzf_search_* functions)
+#
+# EXAMPLES
+#   fzf_configure_bindings                    # Install with default keys
+#   fzf_configure_bindings --help             # Show help
+#   fzf_configure_bindings --history=Ctrl+R   # Use different key for history
+#   fzf_configure_bindings --directory=Ctrl+f # Override directory search key
+#
+# KEY SYNTAX
+#   Key sequences use Fish shell binding syntax:
+#   - Ctrl+c: \cc
+#   - Alt+f:  \ef
+#   - Ctrl+r: \cr
+#   - Enter:   \e
+#
+# NOTES
+#   - Only installs in interactive mode or during CI testing
+#   - Automatically uninstalls existing fzf bindings before installation
+#   - Creates _fzf_uninstall_bindings function for cleanup
+#
+# SEE ALSO
+#   fzf(1) fish(1) bind(1)
+#
+function fzf_configure_bindings --description "Configure fzf key bindings for Fish shell"
     # no need to install bindings if not in interactive mode or running tests
     status is-interactive || test "$CI" = true; or return
 
