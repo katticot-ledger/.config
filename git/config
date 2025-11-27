@@ -5,7 +5,7 @@
 [commit]
 	gpgsign = true
 [user]
-	email = keita.atticot@gmail.com
+	email = sagara911@gmail.com
 	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsmzmrvZTR4ecXm9VaPqy8Sfd5huMwU2VZ8wS16ss3M
 	name = Keita Atticot
 [alias]
@@ -13,6 +13,7 @@
 	co = checkout
 	cob = checkout -b
 	tidy-up = !git checkout main && git branch | grep -v "main" | xargs git branch -D
+	gck = checkout
 [core]
 	editor = nvim
 	excludesfile = /Users/keita/.config/.gitignore
@@ -26,3 +27,9 @@
 [pull]
 	rebase = false
 	excludesfile = /Users/keita/.config/.gitignore
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

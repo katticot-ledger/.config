@@ -68,3 +68,6 @@ configstore/
 # tmux plugin nested git repos (managed as submodules)
 tmux/plugins/dracula-tmux/.git/
 tmux/resurrect/
+tmux/plugins/extrakto/
+nvim/.nvimlog
+zed/prompts/

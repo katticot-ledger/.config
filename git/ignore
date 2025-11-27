@@ -1,8 +1,9 @@
 **/.claude/settings.local.json
 
-**/.claude/settings.local.json
-
-**/.claude/settings.local.json
+# Tool state caches
+tmux/plugins/extrakto/
+nvim/.nvimlog
+zed/prompts/
 
 **/.claude/settings.local.json
 
@@ -115,6 +116,10 @@
 **/.claude/settings.local.json
 
 **/CLAUDE.local.md
+
+**/.claude/settings.local.json
+
+**/.claude/settings.local.json
 
 **/.claude/settings.local.json
 
