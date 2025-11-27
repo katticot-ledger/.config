@@ -27,5 +27,5 @@
 #   cla(1) clad(1) clal(1) cladr(1)
 #
 function claf --description "Run Claude AI assistant with Chrome Dev Tools MCP integration"
-    claude --mcp-config /Users/keita/.mcp-chrome-dev-tool.json --dangerously-skip-permissions $argv
+    claude --mcp-config /Users/keita/.mcp-chrome-dev-tool.json --mcp-config /Users/keita/.mcp-playwright.json --dangerously-skip-permissions 'run the dev server in background with mcp-chrome-dev-tool mcp' $argv
 end

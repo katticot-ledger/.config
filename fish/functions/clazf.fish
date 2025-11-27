@@ -33,5 +33,5 @@ function clazf --description "Run Claude AI assistant with Chrome Dev Tools MCP 
     set -lx ANTHROPIC_AUTH_TOKEN 'cc697eb7f30047ebb9bc388abb0c35f0.urarJjNwJ4EnoUzm'
     set -lx ANTHROPIC_BASE_URL 'https://api.z.ai/api/anthropic'
 
-    claude --mcp-config /Users/keita/.mcp-chrome-dev-tool.json --dangerously-skip-permissions $argv
+    claude --mcp-config /Users/keita/.mcp-chrome-dev-tool.json --mcp-config /Users/keita/.mcp-playwright.json --mcp-config /Users/keita/.mcp-figma.json --dangerously-skip-permissions 'run the dev server in background with mcp-chrome-dev-tool mcp' $argv
 end

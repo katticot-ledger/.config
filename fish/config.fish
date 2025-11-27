@@ -110,3 +110,7 @@ fish_add_path /Users/ke/.codeium/windsurf/bin
 set --export BUN_INSTALL "$HOME/.config/bun"
 
 set --export PATH $BUN_INSTALL/bin $PATH
+alias lz lazygit
+
+# Added by Antigravity
+fish_add_path /Users/keita/.antigravity/antigravity/bin
