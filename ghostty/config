@@ -1,7 +1,8 @@
 font-family="CaskaydiaCove Nerd Font"
 font-size=17
-background = 282c34
-foreground = ffffff
+theme = Monokai Pro Octagon
+background-opacity = 0.75
+background-blur-radius = 25
 window-height = 40
 window-width= 140
 keybind = global:ctrl+a=toggle_quick_terminal
