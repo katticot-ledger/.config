@@ -67,7 +67,15 @@ configstore/
 ### Backup/Temp Files ###
 # tmux plugin nested git repos (managed as submodules)
 tmux/plugins/dracula-tmux/.git/
+tmux/plugins/tmux-fzf/
 tmux/resurrect/
 tmux/plugins/extrakto/
 nvim/.nvimlog
 zed/prompts/
+
+### Build Artifacts & External Tools ###
+# OpenCode build artifacts and dependencies
+opencode/
+
+# Mole cleanup tool logs
+mole/
