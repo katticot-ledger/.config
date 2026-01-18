@@ -5,5 +5,7 @@ background-opacity = 0.75
 background-blur-radius = 25
 window-height = 40
 window-width= 140
-keybind = global:ctrl+a=toggle_quick_terminal
+
+# Unbind Ctrl+F so it passes through to terminal/SSH
+keybind = ctrl+f=unbind
 
