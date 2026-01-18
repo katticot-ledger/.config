@@ -219,6 +219,8 @@ return {
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
+        ensure_installed = vim.tbl_keys(servers),
+        automatic_installation = false,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
