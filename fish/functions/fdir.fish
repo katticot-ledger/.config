@@ -1,35 +1,34 @@
 #
 # NAME
-#   fdir - Fuzzy find files in current directory and open in nvim
+#   fdir - Fuzzy find directories in current directory and cd into it
 #
 # SYNOPSIS
 #   fdir
 #
 # DESCRIPTION
-#   Provides a file discovery interface for the current directory using fd for
-#   file finding and fzf for interactive selection. Features custom color scheme
-#   and opens selected files in nvim with bat previews.
+#   Provides a directory discovery interface for the current directory using fd
+#   for directory finding and fzf for interactive selection. Features the same
+#   custom color scheme as ffile and previews directory contents with eza.
 #
 # FEATURES
-#   - Searches current directory recursively
+#   - Searches current directory recursively for directories
 #   - Excludes .git and raycast directories
 #   - Custom dark color scheme (bg+:#1d1f21, fg:#c5c8c6)
 #   - Rounded borders and margins
-#   - OneHalfDark bat theme with grid layout
+#   - eza tree preview with icons and colors
 #   - 60% right preview window
 #
 # DEPENDENCIES
 #   fd (find replacement)
 #   fzf-tmux (fuzzy finder with tmux integration)
-#   bat (syntax highlighter)
-#   nvim (editor)
+#   eza (modern ls replacement)
 #
 # KEYBOARD BINDINGS
-#   - Enter: Open selected file in nvim
-#   - ESC: Cancel without opening
+#   - Enter: cd into selected directory
+#   - ESC: Cancel without changing directory
 #
 # EXAMPLES
-#   fdir                     # Find and open files from current directory
+#   fdir                     # Find and cd into a directory from current path
 #
 # COLOR SCHEME
 #   Uses custom dark theme optimized for terminal readability:
@@ -39,11 +38,11 @@
 #   - Base background: #282a36 (dracula dark)
 #
 # SEE ALSO
-#   ff(1) fvim(1) fconf(1) fd(1) fzf(1)
+#   ffile(1) ff(1) fvim(1) fconf(1)
 #
-function fdir --description "Fuzzy find files in current directory and open in nvim"
-    FZF_DEFAULT_OPTS="--color=bg+:#1d1f21,fg:#c5c8c6,fg+:#ffffff,bg:#282a36 --border=rounded --margin=0,0" set selected_file (fd --exclude .git --exclude raycast --type f . | fzf-tmux -u 60% --layout=reverse --preview "bat --theme='OneHalfDark' --style=grid,numbers --color=always --line-range=:500 {}" --preview-window=right:60%:wrap)
-    if test -n "$selected_file"
-        nvim "$selected_file"
+function fdir --description "Fuzzy find directories in current directory and cd into it"
+    FZF_DEFAULT_OPTS="--color=bg+:#1d1f21,fg:#c5c8c6,fg+:#ffffff,bg:#282a36 --border=rounded --margin=0,0" set selected_dir (fd --exclude .git --exclude .svn --exclude .hg --exclude CVS --exclude node_modules --exclude bower_components --exclude vendor --exclude .pnpm-store --exclude __pycache__ --exclude .mypy_cache --exclude .pytest_cache --exclude .venv --exclude venv --exclude env --exclude target --exclude build --exclude dist --exclude out --exclude bin --exclude obj --exclude .next --exclude .idea --exclude .vscode --exclude .history --exclude log --exclude logs --exclude tmp --exclude temp --exclude coverage --exclude .cache --exclude .npm --exclude .yarn --exclude raycast --type d . | fzf-tmux -u 60% --layout=reverse --preview "eza --tree --level=2 --long --git --color=always --icons --group-directories-first --header --time-style=relative --no-user --no-permissions {}" --preview-window=right:60%:wrap)
+    if test -n "$selected_dir"
+        cd "$selected_dir"
     end
 end
