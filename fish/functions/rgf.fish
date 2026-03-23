@@ -6,7 +6,14 @@ function rgf
         return 1
     end
 
-    # Use rg to search for the term and pipe results to fzf-tmux
-    rg --column --line-number --no-heading --color=always $search_term | fzf --tmux 70% --ansi --preview 'bat --style=numbers --color=always --line-range=:500 {1}' \
+    # Common fzf options
+    set -l fzf_opts --ansi --preview 'bat --style=numbers --color=always --line-range=:500 {1}' \
         --bind 'enter:execute(nvim {1}:{2})'
+
+    # Use rg to search for the term and pipe results to fzf
+    if set -q TMUX
+        rg --column --line-number --no-heading --color=always $search_term | fzf --tmux 70% $fzf_opts
+    else
+        rg --column --line-number --no-heading --color=always $search_term | fzf $fzf_opts
+    end
 end
