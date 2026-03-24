@@ -65,7 +65,7 @@ return {
         typescript = { 'prettier' },
         javascriptreact = { 'prettier' },
         typescriptreact = { 'prettier' },
-        markdown = { 'prettierd', 'prettier' },
+        markdown = { 'injected' }, -- Formats code blocks inside markdown without breaking tables
         json = { 'prettierd', 'prettier', 'jq' },
       },
       formatters = {

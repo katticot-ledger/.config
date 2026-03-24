@@ -215,6 +215,144 @@ vim.api.nvim_create_autocmd({ 'FileChangedShellPost' }, {
   end,
 })
 require('lazy').setup({
+  -- Add nvim-treesitter for improved syntax highlighting and parsing
+  {
+    'nvim-treesitter/nvim-treesitter',
+    build = ':TSUpdate',
+    event = { 'BufReadPre', 'BufNewFile' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter-textobjects' },
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        -- Add languages that you work on regularly here to improve startup time.
+        -- If not listed, depend on `ensure_installed = 'all'` or `:TSUpdate`
+        ensure_installed = { 'markdown', 'markdown_inline', 'help', 'lua', 'vim', 'vimdoc', 'query' },
+        -- Autoinstall languages that are not installed. Defaults to false (but you can change this to true if you like).
+        auto_install = true,
+        highlight = { enable = true },
+        indent = { enable = true },
+        incremental_selection = {
+          enable = true,
+          keymaps = {
+            init_selection = '<c-space>',
+            node_incremental = '<c-space>',
+            scope_incremental = '<c-s>',
+            node_shrink = '<c-backspace>',
+          },
+        },
+        textobjects = {
+          select = {
+            enable = true,
+            lookahead = true, -- Automatically jump to the next node if item was not found for current node
+            keymaps = {
+              -- You can use the capture groups defined in textobjects.scm
+              ['af'] = '@function.outer',
+              ['if'] = '@function.inner',
+              ['ac'] = '@class.outer',
+              ['ic'] = '@class.inner',
+            },
+          },
+          move = {
+            enable = true,
+            set_jumps = true, -- whether to set jumps in the jumplist
+            goto_next_start = {
+              [']m'] = '@function.outer',
+              [']]'] = '@class.outer',
+            },
+            goto_next_end = {
+              [']M'] = '@function.outer',
+              [']['] = '@class.outer',
+            },
+            goto_previous_start = {
+              ['[m'] = '@function.outer',
+              ['[['] = '@class.outer',
+            },
+            goto_previous_end = {
+              ['[M'] = '@function.outer',
+              ['[]'] = '@class.outer',
+            },
+          },
+          swap = {
+            enable = true,
+            swap_next = {
+              ['<leader>a'] = '@parameter.inner',
+            },
+            swap_previous = {
+              ['<leader>A'] = '@parameter.inner',
+            },
+          },
+        },
+      })
+    end,
+  },
+
+  -- LSP Configuration
+  {
+    'neovim/nvim-lspconfig',
+    dependencies = { 'williamboman/mason.nvim', 'williamboman/mason-lspconfig.nvim' },
+    config = function()
+      require('mason').setup()
+      require('mason-lspconfig').setup({ ensure_installed = { 'lua_ls', 'jsonls', 'marksman' } })
+      local lspconfig = require('lspconfig')
+      lspconfig.lua_ls.setup { settings = { Lua = { diagnostics = { globals = { 'vim' } } } } }
+      lspconfig.jsonls.setup { }
+      lspconfig.marksman.setup { }
+
+      -- Global LSP keymaps
+      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = '[G]oto [D]efinition' })
+      vim.keymap.set('n', 'gr', vim.lsp.buf.references, { desc = '[G]oto [R]eferences' })
+      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = '[G]oto [D]eclaration' })
+      vim.keymap.set('n', 'gI', vim.lsp.buf.implementation, { desc = '[G]oto [I]mplementation' })
+      vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, { desc = '[G]oto [T]ype [D]efinition' })
+      vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = 'Hover Documentation' })
+      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { desc = '[R]e[n]ame' })
+      vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { desc = '[C]ode [A]ction' })
+    end,
+  },
+  -- Lualine for statusline
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' }, -- For file icons
+    config = function()
+      require('lualine').setup {
+        options = {
+          icons_enabled = vim.g.have_nerd_font, -- Use icons if Nerd Font is available
+          theme = 'tokyonight', -- Match your current colorscheme
+          section_separators = { left = '', right = '' },
+          component_separators = { left = '', right = '' },
+          disabled_filetypes = {
+            statusline = {},
+            winbar = {},
+          },
+          always_last_status = 0,
+          globalstatus = true,
+          refresh = {
+            statusline = 1000,
+            tabline = 1000,
+            winbar = 1000,
+          },
+        },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { 'filename' },
+          lualine_x = { 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { 'filename' },
+          lualine_x = { 'location' },
+          lualine_y = {},
+          lualine_z = {},
+        },
+        tabline = {},
+        winbar = {},
+        extensions = {},
+      }
+    end,
+  },
   {
     'NMAC427/guess-indent.nvim',
     event = 'BufReadPre',
