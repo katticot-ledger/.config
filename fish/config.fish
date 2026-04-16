@@ -37,11 +37,6 @@ fish_add_path /Applications/Obsidian.app/Contents/MacOS
 # 🔐 Secrets & API Tokens (1Password)
 # Universal variables (-Ux) persist across sessions, so this only runs if the var is missing.
 if type -q op
-    if not set -q JIRA_API_TOKEN
-        set -l jira_token (op item get ocj3glcbzdaxevswcn2kvrmx3i --fields token 2> /dev/null)
-        test -n "$jira_token" && set -Ux JIRA_API_TOKEN $jira_token
-    end
-
     if not set -q ANTHROPIC_API_KEY
         set -l anthropic_key (op item get 7c7ddeemjohrphdgxvtphjw6c4 --fields "api key" 2> /dev/null)
         test -n "$anthropic_key" && set -Ux ANTHROPIC_API_KEY $anthropic_key
@@ -106,3 +101,24 @@ if status is-interactive
 end
 # Added by Antigravity
 fish_add_path /Users/keita/.antigravity/antigravity/bin
+
+# op command audit wrapper
+function op
+    echo (date '+%Y-%m-%d %H:%M:%S') (whoami) op $argv >> ~/.op_audit.log
+    command op $argv
+end
+
+# ===========================================
+# 📚 Google Workspace CLI - Multi-Account
+# ===========================================
+function gws-powerhive
+    env GOOGLE_WORKSPACE_CLI_CONFIG_DIR="$HOME/.config/gws-powerhive" gws $argv
+end
+
+function gws-personal
+    gws $argv
+end
+
+abbr -a gwp gws-powerhive
+abbr -a gws-per gws-personal
+set -gx PATH $PATH /opt/homebrew/opt/difftastic/bin
