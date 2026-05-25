@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json",
+  "schemaVersion": 1,
+
+  "app" : {
+    "newWorkspacePlacement" : "afterCurrent",
+    "workspaceInheritWorkingDirectory" : true,
+    "minimalMode" : true,
+    "hideTabCloseButton" : true
+  },
+
+  "terminal" : {
+    "autoResumeAgentSessions" : true
+  },
+
+  "notifications" : {
+    "dockBadge" : true,
+    "paneFlash" : true,
+    "unreadPaneRing" : true
+  },
+
+  "sidebar" : {
+    "showProgress" : true,
+    "showPullRequests" : true,
+    "watchGitStatus" : true,
+    "showPorts" : true,
+    "showBranchDirectory" : true,
+    "showLog" : true,
+    "showNotificationMessage" : true
+  },
+
+  "automation" : {
+    "claudeCodeIntegration" : true,
+    "suppressSubagentNotifications" : true
+  }
+}
