@@ -1,0 +1,11 @@
+name = "Vault"
+description = "Powerhive Obsidian vault"
+working_dir = "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/powerhive"
+group = "Powerhive"
+
+[[tabs]]
+name = "obsidian"
+command = "open 'obsidian://open?vault=powerhive'"
+
+[[tabs]]
+name = "cli"

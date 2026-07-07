@@ -1,0 +1,10 @@
+name = "Infra — Powerhive"
+description = "Powerhive infrastructure (Pulumi/Terraform)"
+working_dir = "~/Developer/work/infra-powerhive"
+group = "Powerhive"
+
+[[tabs]]
+name = "editor"
+
+[[tabs]]
+name = "cli"

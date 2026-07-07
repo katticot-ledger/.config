@@ -1,0 +1,10 @@
+name = "Sokoni Haraka"
+description = "M-Pesa marketplace platform"
+working_dir = "~/Developer/work/sokoni-haraka"
+group = "Powerhive"
+
+[[tabs]]
+name = "editor"
+
+[[tabs]]
+name = "cli"

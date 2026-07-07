@@ -1,0 +1,60 @@
+name = "Open repo"
+description = "Pick a repo and open it in herdr"
+type = "select"
+command = "cd ~/Developer/{{.Value}}; herdr workspace new '{{.Value}}' --layout default"
+
+[[options]]
+label = "mail-sweep"
+value = "experiments/mail-sweep"
+
+[[options]]
+label = "infra-powerhive"
+value = "work/infra-powerhive"
+
+[[options]]
+label = "infra-web"
+value = "work/infra-web"
+
+[[options]]
+label = "infra-cli"
+value = "work/infra-cli"
+
+[[options]]
+label = "sokoni-haraka"
+value = "work/sokoni-haraka"
+
+[[options]]
+label = "hermes-agent"
+value = "tools/hermes-agent"
+
+[[options]]
+label = "vsa"
+value = "tools/vsa"
+
+[[options]]
+label = "bumblebee"
+value = "experiments/bumblebee"
+
+[[options]]
+label = "agent-fleet"
+value = "experiments/agent-fleet"
+
+[[options]]
+label = "plan-runner"
+value = "experiments/plan-runner"
+
+[[options]]
+label = "flights"
+value = "experiments/flights"
+
+[[options]]
+label = "finance"
+value = "experiments/finance"
+
+[[options]]
+label = "web3-veille"
+value = "experiments/web3-veille"
+
+[[options]]
+label = "vendome-paris"
+value = "experiments/vendome-paris-blueprint"

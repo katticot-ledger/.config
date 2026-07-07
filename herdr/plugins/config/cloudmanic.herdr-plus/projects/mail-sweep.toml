@@ -1,0 +1,10 @@
+name = "Mail Sweep"
+description = "Flue email processing workflow"
+working_dir = "~/Developer/experiments/mail-sweep"
+group = "Powerhive"
+
+[[tabs]]
+name = "editor"
+
+[[tabs]]
+name = "cli"

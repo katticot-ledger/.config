@@ -1,0 +1,3 @@
+name = "Linear — my issues"
+description = "Show my open issues sorted by priority"
+command = 'npx @schpet/linear-cli issue mine --team TPOW --sort priority; printf "\n— press Enter —\n"; read _ </dev/tty'

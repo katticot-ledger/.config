@@ -1,0 +1,6 @@
+name = "Parallel PR Review"
+type = "form"
+command = "echo 'Review PRs #{{.Value}} in parallel. Use fleet-lens agents with worktree:true, concurrency:3' | pbcopy && echo 'Prompt copied — paste in pi'"
+
+[form]
+prompt = "PR numbers (space-separated)"

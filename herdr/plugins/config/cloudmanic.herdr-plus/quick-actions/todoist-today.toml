@@ -1,0 +1,3 @@
+name = "Todoist today"
+description = "Show today's tasks"
+command = 'td today; printf "\n— press Enter —\n"; read _ </dev/tty'

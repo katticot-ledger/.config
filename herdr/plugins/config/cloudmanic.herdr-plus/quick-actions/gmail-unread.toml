@@ -1,0 +1,3 @@
+name = "GMail — unread"
+description = "Show last 5 unread emails"
+command = 'gmcli keita@powerhive.com search "in:inbox is:unread" --max 5; printf "\n— press Enter —\n"; read _ </dev/tty'

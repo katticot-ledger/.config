@@ -1,0 +1,3 @@
+name = "Open vault"
+description = "Open Powerhive vault in Obsidian"
+command = 'open "obsidian://open?vault=powerhive"'

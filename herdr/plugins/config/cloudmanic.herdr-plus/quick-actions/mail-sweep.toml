@@ -1,0 +1,3 @@
+name = "Mail sweep"
+description = "Classify inbox + update vault contacts + archive"
+command = '''cd ~/Developer/experiments/mail-sweep && DEEPSEEK_API_KEY="$(jq -r .providers.deepseek.apiKey ~/.pi/agent/models.json)" npx flue run mail-sweep --target node --payload '{"dryRun": false, "maxEmails": 15}' ; printf "\n— done · press Enter —\n"; read _ </dev/tty'''

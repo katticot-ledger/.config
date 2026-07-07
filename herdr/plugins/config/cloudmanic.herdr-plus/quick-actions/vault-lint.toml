@@ -1,0 +1,3 @@
+name = "Lint vault"
+description = "Run pawa-lint on the Powerhive vault"
+command = 'cd "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/powerhive" && ./4_agent/cmd/pawa-lint/pawa-lint --vault-path .; printf "\n— done · press Enter —\n"; read _ </dev/tty'

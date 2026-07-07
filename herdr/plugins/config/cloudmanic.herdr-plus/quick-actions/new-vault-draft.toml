@@ -1,0 +1,8 @@
+name = "New vault draft"
+description = "Create a draft note in 0_Inbox/"
+type = "form"
+command = 'VAULT="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/powerhive"; TODAY=$(date +%Y-%m-%d); printf "---\ntitle: \"%s\"\ncreated: %s\nstatus: draft\ntype: note\ntags: []\nsummary: \"\"\n---\n\n# %s\n" "{{.Value}}" "$TODAY" "{{.Value}}" > "$VAULT/0_Inbox/{{.Value}}.md" && echo "Created 0_Inbox/{{.Value}}.md"; printf "\n— press Enter —\n"; read _ </dev/tty'
+
+[form]
+prompt = "Note title"
+placeholder = "e.g. Meeting notes — Foo"
