@@ -1,0 +1,12 @@
+repo = "powerhive"
+
+[[tabs]]
+name = "pi"
+command = "pi"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"
+
+[[tabs]]
+name = "terminal"

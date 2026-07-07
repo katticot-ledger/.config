@@ -1,0 +1,6 @@
+name = "Bond POC — new worktree"
+type = "form"
+command = "herdr worktree create --cwd ~/Developer/work/Powerhive2024/powerhive-bond-poc --branch {{.Value}} --label {{.Value}} && echo 'Worktree created on branch: {{.Value}}'"
+
+[form]
+prompt = "Branch name"

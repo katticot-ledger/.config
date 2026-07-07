@@ -1,0 +1,16 @@
+repo = "powerhive-bond-poc"
+
+[[tabs]]
+name = "pi"
+command = "pi"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"
+
+[[tabs]]
+name = "terminal"
+
+[[tabs]]
+name = "tests"
+command = "cd react-app && bun test --watch"

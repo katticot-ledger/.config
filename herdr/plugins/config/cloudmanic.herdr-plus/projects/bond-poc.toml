@@ -1,0 +1,19 @@
+name = "Bond POC"
+description = "Powerhive bond proof-of-concept — KYC, coupons, smart contracts"
+working_dir = "~/Developer/work/Powerhive2024/powerhive-bond-poc"
+group = "Powerhive"
+
+[[tabs]]
+name = "pi"
+command = "pi"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"
+
+[[tabs]]
+name = "terminal"
+
+[[tabs]]
+name = "tests"
+command = "cd react-app && bun test --watch"
