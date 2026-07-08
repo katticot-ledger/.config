@@ -10,7 +10,6 @@ end
 
 -- Blink configuration
 local blink_cmp_opts = {
-  -- Keymap presets: 'super-tab' for vscode-like, 'enter' for using Enter to accept
   keymap = { preset = 'enter' },
   completion = {
     documentation = {
@@ -26,7 +25,6 @@ local blink_cmp_opts = {
               local kind_icon = get_mini_icon(ctx.kind)
               return kind_icon or ''
             end,
-            -- Optionally, you may also use the highlights from mini.icons
             highlight = function(ctx)
               local _, hl = get_mini_icon(ctx.kind)
               return hl
@@ -36,20 +34,43 @@ local blink_cmp_opts = {
       },
     },
   },
+  sources = {
+    default = { 'lsp', 'path', 'snippets', 'buffer', 'avante_commands', 'avante_mentions', 'avante_files' },
+    providers = {
+      avante_commands = {
+        name = 'avante_commands',
+        module = 'blink.compat.source',
+        score_offset = 90,
+        opts = {},
+      },
+      avante_files = {
+        name = 'avante_files',
+        module = 'blink.compat.source',
+        score_offset = 100,
+        opts = {},
+      },
+      avante_mentions = {
+        name = 'avante_mentions',
+        module = 'blink.compat.source',
+        score_offset = 1000,
+        opts = {},
+      },
+    },
+  },
 }
 
 return {
   {
     'saghen/blink.cmp',
     lazy = false,
-    dependencies = 'rafamadriz/friendly-snippets',
+    dependencies = {
+      'rafamadriz/friendly-snippets',
+      'saghen/blink.compat',
+    },
     version = '*',
 
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
-    opts = blink_cmp_opts, -- Use the defined Blink CMP options
-
-    -- Allows extending the enabled_providers array elsewhere
-    opts_extend = { 'sources.completion.enabled_providers' },
+    opts = blink_cmp_opts,
   },
 }

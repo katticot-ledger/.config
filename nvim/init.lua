@@ -4,6 +4,11 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Temporary fix for deprecated sign_define warning
+-- REMOVE BY 2026-09-24 (6 months from 2026-03-24)
+-- Plugins using old sign API need to update; this suppresses the warning until then
+vim.deprecate = function() end
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
@@ -111,15 +116,49 @@ vim.opt.scrolloff = 20
 vim.api.nvim_set_keymap('n', 'x', '"_x', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('v', 'x', '"_x', { noremap = true, silent = true })
 
+-- 🚫 Remap Ctrl+Z to do nothing (prevent accidental suspension)
+-- If you actually want to suspend, use the command :suspend
+vim.keymap.set('n', '<C-z>', '<Nop>', { desc = 'Disable Ctrl+Z (use :suspend instead)' })
+vim.keymap.set('i', '<C-z>', '<Nop>', { desc = 'Disable Ctrl+Z (use :suspend instead)' })
+vim.keymap.set('v', '<C-z>', '<Nop>', { desc = 'Disable Ctrl+Z (use :suspend instead)' })
+
+-- 🧹 Clean up stuck ShaDa temp files on startup (prevents E138 error)
+vim.schedule(function()
+  local shada_dir = vim.fn.stdpath 'state' .. '/shada'
+  vim.fn.mkdir(shada_dir, 'p')
+  local temp_files = vim.fn.glob(shada_dir .. '/main.shada.tmp.?', true, true)
+  for _, file in ipairs(temp_files) do
+    -- Delete temp files older than 1 day (86400 seconds)
+    local modified = vim.fn.getftime(file)
+    local current = vim.fn.localtime()
+    if current - modified > 86400 then
+      os.remove(file)
+    end
+  end
+end)
+
 -- ==================================================
 -- 💾 SAVE & QUIT
 -- ==================================================
 
 -- Save and quit using 'AA' in normal mode
-vim.keymap.set('n', 'AA', ':wq<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', 'AA', ':wq<CR>', { noremap = true, silent = true, desc = 'Save & Quit' })
 
 -- Save file with Ctrl+S
 vim.keymap.set('n', '<C-s>', '<cmd>w<CR>', { desc = 'Save' })
+vim.keymap.set('i', '<C-s>', '<cmd>w<CR>', { desc = 'Save (insert mode)' })
+
+-- Quit without saving (only if no unsaved changes)
+vim.keymap.set('n', 'QQ', ':q<CR>', { noremap = true, silent = true, desc = 'Quit' })
+
+-- Force quit without saving
+vim.keymap.set('n', 'Q!', ':q!<CR>', { noremap = true, silent = true, desc = 'Force Quit' })
+
+-- Quit all buffers
+vim.keymap.set('n', 'QA', ':qa<CR>', { noremap = true, silent = true, desc = 'Quit All' })
+
+-- Force quit all buffers
+vim.keymap.set('n', 'Q!!', ':qa!<CR>', { noremap = true, silent = true, desc = 'Force Quit All' })
 
 -- ==================================================
 -- 🔍 SEARCH & HIGHLIGHTING
@@ -225,20 +264,13 @@ require('lazy').setup({
       require('nvim-treesitter.configs').setup({
         -- Add languages that you work on regularly here to improve startup time.
         -- If not listed, depend on `ensure_installed = 'all'` or `:TSUpdate`
-        ensure_installed = { 'markdown', 'markdown_inline', 'help', 'lua', 'vim', 'vimdoc', 'query' },
+        ensure_installed = { 'markdown', 'markdown_inline', 'lua', 'vim', 'vimdoc', 'query' },
         -- Autoinstall languages that are not installed. Defaults to false (but you can change this to true if you like).
         auto_install = true,
         highlight = { enable = true },
         indent = { enable = true },
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = '<c-space>',
-            node_incremental = '<c-space>',
-            scope_incremental = '<c-s>',
-            node_shrink = '<c-backspace>',
-          },
-        },
+        -- Note: incremental_selection module removed in nvim-treesitter main branch
+        -- Use alternative: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
         textobjects = {
           select = {
             enable = true,

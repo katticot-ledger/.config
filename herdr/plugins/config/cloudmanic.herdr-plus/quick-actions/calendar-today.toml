@@ -1,3 +1,19 @@
 name = "Calendar today"
 description = "Show today's events"
-command = 'gccli keita@powerhive.com events primary --from "$(date +%Y-%m-%d)T00:00:00+02:00" --to "$(date +%Y-%m-%d)T23:59:59+02:00" --max 10; printf "\n— press Enter —\n"; read _ </dev/tty'
+command = '''cat > /tmp/herdr-cal.sh << 'EOF'
+#!/bin/bash
+printf '\033[1;36m═══ Calendar — today ═══\033[0m\n'
+FROM="$(date +%Y-%m-%d)T00:00:00+02:00"
+TO="$(date +%Y-%m-%d)T23:59:59+02:00"
+gccli keita@powerhive.com events primary --from "$FROM" --to "$TO" --max 10
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  printf '\n\033[1;32m✓ Done\033[0m\n'
+else
+  printf '\n\033[1;31m✗ Failed (exit %d)\033[0m\n' $STATUS
+fi
+EOF
+PID=$(herdr pane split --direction right --no-focus 2>&1 | jq -r .result.pane.pane_id)
+sleep 1
+herdr pane send-text "$PID" "bash /tmp/herdr-cal.sh; rm -f /tmp/herdr-cal.sh"
+herdr pane send-keys "$PID" "enter"'''

@@ -1,3 +1,18 @@
 name = "Lint vault"
 description = "Run pawa-lint on the Powerhive vault"
-command = 'cd "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/powerhive" && ./4_agent/cmd/pawa-lint/pawa-lint --vault-path .; printf "\n— done · press Enter —\n"; read _ </dev/tty'
+command = '''cat > /tmp/herdr-lint.sh << 'EOF'
+#!/bin/bash
+printf '\033[1;36m═══ Lint vault ═══\033[0m\n'
+cd "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/powerhive"
+./4_agent/cmd/pawa-lint/pawa-lint --vault-path .
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  printf '\n\033[1;32m✓ Done — Lint vault\033[0m\n'
+else
+  printf '\n\033[1;31m✗ Lint vault failed (exit %d)\033[0m\n' $STATUS
+fi
+EOF
+PID=$(herdr pane split --direction right --no-focus 2>&1 | jq -r .result.pane.pane_id)
+sleep 1
+herdr pane send-text "$PID" "bash /tmp/herdr-lint.sh; rm -f /tmp/herdr-lint.sh"
+herdr pane send-keys "$PID" "enter"'''

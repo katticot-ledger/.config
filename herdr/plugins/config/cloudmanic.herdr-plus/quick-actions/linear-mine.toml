@@ -1,3 +1,17 @@
 name = "Linear — my issues"
 description = "Show my open issues sorted by priority"
-command = 'npx @schpet/linear-cli issue mine --team TPOW --sort priority; printf "\n— press Enter —\n"; read _ </dev/tty'
+command = '''cat > /tmp/herdr-linear.sh << 'EOF'
+#!/bin/bash
+printf '\033[1;36m═══ Linear — my issues ═══\033[0m\n'
+npx @schpet/linear-cli issue mine --team TPOW --sort priority
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  printf '\n\033[1;32m✓ Done\033[0m\n'
+else
+  printf '\n\033[1;31m✗ Failed (exit %d)\033[0m\n' $STATUS
+fi
+EOF
+PID=$(herdr pane split --direction right --no-focus 2>&1 | jq -r .result.pane.pane_id)
+sleep 1
+herdr pane send-text "$PID" "bash /tmp/herdr-linear.sh; rm -f /tmp/herdr-linear.sh"
+herdr pane send-keys "$PID" "enter"'''

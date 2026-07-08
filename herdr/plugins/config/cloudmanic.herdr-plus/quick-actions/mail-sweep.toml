@@ -1,3 +1,20 @@
 name = "Mail sweep"
 description = "Classify inbox + update vault contacts + archive"
-command = '''cd ~/Developer/experiments/mail-sweep && DEEPSEEK_API_KEY="$(jq -r .providers.deepseek.apiKey ~/.pi/agent/models.json)" npx flue run mail-sweep --target node --payload '{"dryRun": false, "maxEmails": 15}' ; printf "\n— done · press Enter —\n"; read _ </dev/tty'''
+command = '''cat > /tmp/herdr-mail.sh << 'EOF'
+#!/bin/bash
+printf '\033[1;36m═══ Mail sweep ═══\033[0m\n'
+printf '\033[2m(this may take ~30s)\033[0m\n'
+cd ~/Developer/experiments/mail-sweep
+DEEPSEEK_API_KEY="$(jq -r .providers.deepseek.apiKey ~/.pi/agent/models.json)"
+npx flue run mail-sweep --target node --payload '{"dryRun": false, "maxEmails": 15}'
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  printf '\n\033[1;32m✓ Done — Mail sweep\033[0m\n'
+else
+  printf '\n\033[1;31m✗ Mail sweep failed (exit %d)\033[0m\n' $STATUS
+fi
+EOF
+PID=$(herdr pane split --direction right --no-focus 2>&1 | jq -r .result.pane.pane_id)
+sleep 1
+herdr pane send-text "$PID" "bash /tmp/herdr-mail.sh; rm -f /tmp/herdr-mail.sh"
+herdr pane send-keys "$PID" "enter"'''

@@ -252,6 +252,9 @@ return {
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      incremental_selection = {
+        enable = false, -- Disabled to avoid conflict with init.lua config
+      },
       event = { 'BufRead', 'BufNewFile' },
     },
     -- NOTE:

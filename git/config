@@ -1,13 +1,11 @@
 [gpg]
 	format = ssh
-[gpg "ssh"]
-	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 [commit]
 	gpgsign = true
 [user]
 	email = sagara911@gmail.com
-	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsmzmrvZTR4ecXm9VaPqy8Sfd5huMwU2VZ8wS16ss3M
-	name = Keita Atticot
+	name = katticot
+	signingkey = /Users/keita/.ssh/id_ed25519_sk.pub
 [alias]
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	co = checkout
@@ -17,6 +15,7 @@
 [core]
 	editor = nvim
 	excludesfile = /Users/keita/.config/.gitignore
+	sshCommand = ssh
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
@@ -33,3 +32,7 @@
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !/opt/homebrew/bin/gh auth git-credential
+[diff "difft"]
+	command = difft --color=always
+[gpg "ssh"]
+	allowedSignersFile = /Users/keita/.ssh/allowed_signers
