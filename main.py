@@ -119,15 +119,11 @@ def update_package_list(new_package: str, category: str, install_type: str):
 PACKAGES: Dict[str, List[str]] = {
     "🖥️ Terminal Emulators & Multiplexers": [
         "ghostty:cask",
-        "kitty:brew",
-        "wezterm:cask",
         "tmux:brew",
     ],
     "🐚 Shell & Command Line": [
         "fish:brew",
-        "starship:brew",
         "atuin:brew",
-        "broot:brew",
         "eza:brew",
         "fzf:brew",
         "zoxide:brew",
@@ -151,15 +147,9 @@ PACKAGES: Dict[str, List[str]] = {
         "gnupg:brew",
     ],
     "🪟 Window Management (macOS)": [
-        "koekeishiya/formulae:tap",
-        "FelixKratz/formulae:tap",
-        "yabai:brew",
-        "skhd:brew",
-        "sketchybar:brew",
     ],
     "📊 System Monitoring": [
         "btop:brew",
-        "wtfutil:brew",
     ],
     "🚀 Productivity & Utilities": [
         "raycast:cask",
@@ -167,14 +157,9 @@ PACKAGES: Dict[str, List[str]] = {
     ],
     "☁️ Cloud & Infrastructure": [
         "awscli:brew",
-        "k9s:brew",
-        "kubectx:brew",
-        "tunnelblick:cask",
     ],
     "🔄 Runtime & Package Managers": [
-        "nvm:brew",
         "yarn:brew",
-        "pdm:brew",
     ],
 }
 

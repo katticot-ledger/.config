@@ -79,3 +79,35 @@ opencode/
 
 # Mole cleanup tool logs
 mole/
+
+### Sensitive: Keys, Credentials, Logs ###
+# YouTube controller keys and cookies
+ytctl/api-key.txt
+ytctl/youtube-cookies.txt
+ytctl/*.db*
+
+# Google Workspace credentials (all accounts)
+gws*/.encryption_key
+gws*/credentials.enc
+gws*/token_cache.json
+gws*/client_secret.json
+gws*/cache/
+
+# Tool credentials
+linear/credentials.toml
+resend/credentials.json
+notion/cache.json
+
+# Runtime logs
+herdr/herdr-*.log
+
+# Plugin source repos (cloned by tool, not config)
+herdr/plugins/github/
+herdr/release-notes.json
+herdr/session.json
+
+# Browser automation extensions (runtime deps)
+browseruse/extensions/
+
+# Skill reference repos (knowledge bases)
+crush/skills/
