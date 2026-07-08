@@ -9,52 +9,61 @@ This repository contains my complete development environment configuration with 
 ### 🖥️ Terminal Emulators & Multiplexers
 - **[Ghostty](https://ghostty.org/)** - Fast, native terminal emulator
 - **[Kitty](https://sw.kovidgoyal.net/kitty/)** - GPU-accelerated terminal emulator
-- **[WezTerm](https://wezfurlong.org/wezterm/)** - GPU-accelerated cross-platform terminal
 - **[Tmux](https://github.com/tmux/tmux)** - Terminal multiplexer with custom plugins
 
 ### 🐚 Shell & Command Line
 - **[Fish](https://fishshell.com/)** - Friendly interactive shell with completions
-- **[Starship](https://starship.rs/)** - Cross-shell prompt with customization
 - **[Atuin](https://atuin.sh/)** - Shell history replacement with sync
-- **[Broot](https://dystroy.org/broot/)** - Interactive tree view file navigator
+- **[Eza](https://eza.rocks/)** - Modern `ls` replacement with git integration
+- **[Fzf](https://github.com/junegunn/fzf)** - Fuzzy finder
+- **[Zoxide](https://github.com/ajeetdsouza/zoxide)** - Smarter `cd` command
+- **[Bat](https://github.com/sharkdp/bat)** - `cat` clone with syntax highlighting
+- **[Ripgrep](https://github.com/BurntSushi/ripgrep)** - Line-oriented search tool
+- **[Dust](https://github.com/bootandy/dust)** - More intuitive `du`
 
 ### 💻 Code Editors
 - **[Neovim](https://neovim.io/)** - Hyperextensible Vim-based editor with lazy.nvim
+- **[Zed](https://zed.dev/)** - High-performance, multiplayer code editor
 
 ### 🔧 Development Tools
 - **[Git](https://git-scm.com/)** - Version control with custom configuration
 - **[GitHub CLI](https://cli.github.com/)** - Command-line GitHub integration
-- **[GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli)** - AI-powered command suggestions
-- **[GitHub Dash](https://github.com/dlvhdr/gh-dash)** - GitHub dashboard in terminal
 - **[Google Cloud SDK](https://cloud.google.com/sdk)** - Cloud development and deployment
+- **[Lazygit](https://github.com/jesseduffield/lazygit)** - Terminal UI for git
+- **[Difftastic](https://github.com/Wilfred/difftastic)** - Structural diff tool
+- **[Jq](https://jqlang.org/)** - Command-line JSON processor
 
-### 🪟 Window Management (macOS)
-- **[Yabai](https://github.com/koekeishiya/yabai)** - Tiling window manager
-- **[SKHD](https://github.com/koekeishiya/skhd)** - Simple hotkey daemon
-- **[SketchyBar](https://github.com/FelixKratz/SketchyBar)** - Custom macOS menu bar
+### 🛠️ AI & Coding Agents
+- **[Pi](https://pi.earendil.dev/)** - Coding agent with Fish integration (pic, pig, pim, piz, piup commands)
+- **[OpenCode](https://opencode.ai/)** - AI coding assistant CLI
 
-### 📊 System Monitoring
-- **[Btop](https://github.com/aristocratos/btop)** - Resource monitor with beautiful interface
-- **[WTF](https://wtfutil.com/)** - Personal information dashboard
+### 📂 File Management
+- **[Yazi](https://yazi-rs.github.io/)** - Blazing fast terminal file manager
+- **[Ytctl](https://github.com/katticot/ytctl)** - YouTube controller CLI
 
 ### 🚀 Productivity & Utilities
 - **[Raycast](https://raycast.com/)** - Extensible launcher and productivity tool
 - **[1Password CLI](https://developer.1password.com/docs/cli)** - Password and secrets management
+- **[Todoist CLI](https://github.com/sachaos/todoist)** - Task management from terminal
+- **[Notion CLI](https://github.com/notion-cli/notion)** - Notion workspace management
+- **[Resend](https://resend.com/)** - Email API CLI
 - **Homebrew Package Manager Script** - Custom Python script for package management
+- **Herdr+** - Terminal workspace manager with projects, quick-actions, and worktrees
+
+### 📊 System Monitoring
+- **[Btop](https://github.com/aristocratos/btop)** - Resource monitor with beautiful interface
 
 ### ☁️ Cloud & Infrastructure
 - **[AWS CLI](https://aws.amazon.com/cli/)** - AWS management from the terminal
-- **[k9s](https://k9scli.io/)** - Terminal UI for Kubernetes clusters
-- **[kubectx](https://github.com/ahmetb/kubectx)** - Switch between Kubernetes contexts and namespaces
-- **[Tunnelblick](https://tunnelblick.net/)** - OpenVPN client for macOS
+- **[Google Workspace CLI (gws)](https://github.com/katticot/gws)** - Gmail, Calendar, Drive from terminal
 
 ### 🔄 Runtime & Package Managers
-- **[nvm](https://github.com/nvm-sh/nvm)** - Node.js version manager
+- **[Bun](https://bun.sh/)** - Fast JavaScript runtime and package manager
 - **[Yarn](https://yarnpkg.com/)** - JavaScript package manager
-- **[PDM](https://pdm.fming.dev/)** - Python package and environment manager
 
-### ⌨️ Hardware Configuration
-- **[Glove80](https://www.moergo.com/collections/glove80-keyboards)** - Ergonomic keyboard layout and configuration
+### 🔐 Security & Auth
+- **[Yubikey](https://www.yubico.com/)** - Hardware SSH/GPG signing key
+- **[GnuPG](https://gnupg.org/)** - OpenPGP encryption and signing
 
 ## Quick Setup After Computer Reset
 
@@ -126,45 +135,32 @@ Interactive mode (run without flags) lets you:
 # 🖥️ Terminal Emulators & Multiplexers
 brew install --cask ghostty
 brew install kitty
-brew install --cask wezterm
 brew install tmux
 
 # 🐚 Shell & Command Line Tools
-brew install fish starship atuin broot eza fzf
+brew install fish atuin eza fzf zoxide bat ripgrep dust
 
 # 💻 Code Editors
 brew install neovim
+brew install --cask zed
 
 # 🔧 Development Tools
-brew install git gh
-gh extension install github/gh-copilot
-gh extension install dlvhdr/gh-dash
+brew install git gh lazygit jq gnupg
 brew install --cask google-cloud-sdk
-
-# ☁️ Cloud & Infrastructure
-brew install awscli k9s kubectx
-brew install --cask tunnelblick
-
-# 🪟 Window Management (macOS)
-brew install koekeishiya/formulae/yabai
-brew install koekeishiya/formulae/skhd
-brew tap FelixKratz/formulae
-brew install sketchybar
 
 # 📊 System Monitoring
 brew install btop
-brew install wtfutil
 
 # 🚀 Productivity & Utilities
 brew install --cask raycast
 brew install 1password-cli
 
-# 🔄 Runtime & Package Managers
-brew install nvm yarn pdm
+# ☁️ Cloud & Infrastructure
+brew install awscli
 
-# JavaScript Runtime (alternate install method)
+# 🔄 Runtime & Package Managers
 curl -fsSL https://bun.sh/install | bash
-npm install -g pnpm
+npm install -g yarn
 
 # Make Fish the default shell
 echo $(which fish) | sudo tee -a /etc/shells
@@ -177,37 +173,44 @@ fish
 ### 4. Tool-Specific Setup
 
 #### 🖥️ Terminal Configuration
-- **Ghostty/Kitty/WezTerm**: Configurations will be loaded automatically
-- **Tmux**: Start tmux - plugins in `tmux/plugins/` are included
+- **Ghostty/Kitty**: Configurations will be loaded automatically
+- **Tmux**: Start tmux — plugins install automatically via TPM
 
 #### 🐚 Shell Setup
 - **Fish**: Configuration loads automatically with completions and functions
-- **Starship**: Prompt configuration from `starship.toml`
 - **Atuin**: Run `atuin register` and `atuin login` for history sync
 
-#### 💻 Editor Setup  
-- **Neovim**: Launch `nvim` - plugins install automatically via lazy.nvim
+#### 💻 Editor Setup
+- **Neovim**: Launch `nvim` — plugins install automatically via lazy.nvim
+- **Zed**: Import config from `~/.config/zed/`
 
 #### 🔧 Development Tools
 - **GitHub CLI**: Run `gh auth login` to authenticate
-- **GitHub Copilot**: Run `gh copilot auth` after installing extension  
 - **Google Cloud**: Run `gcloud auth login` and configure projects
-
-#### 🪟 Window Management (macOS)
-- **Yabai**: May require System Integrity Protection adjustments
-- **SKHD**: Start with `brew services start skhd`  
-- **SketchyBar**: Start with `brew services start sketchybar`
+- **Yubikey**: Configure SSH signing key at `~/.ssh/id_ed25519_sk.pub`
 
 #### 🚀 Productivity Tools
 - **Raycast**: Import settings and extensions manually
 - **1Password**: Run `op signin` and configure vault access
+- **Todoist**: Configure via `td auth login`
+- **Notion**: Set up workspace in `notion/config.json`
+
+#### 🤖 Pi Coding Agent
+- Run `load_pi_keys` in Fish to load API keys from 1Password
+- Use `pic`, `pig`, `pim`, `piz`, `piup` for quick pi commands
+- Configured in `agents/`
+
+#### 🗂️ Herdr+ Workspace Manager
+- Install herdr: `brew install herdr`
+- Configs in `herdr/` — projects, quick-actions, worktrees
+- Trigger with herdr command + fuzzy picker
 
 ### 5. Additional Configurations
 
 Some files need manual setup:
 
 - **Sensitive Credentials**: Re-authenticate with Google Cloud, 1Password, etc.
-- **SSH Keys**: Generate and configure new keys for GitHub access
+- **SSH Keys**: Generate and configure Yubikey-backed keys for GitHub access
 - **Shell History**: Will rebuild over time
 - **Application-Specific**: Raycast, window managers may need reconfiguration
 
@@ -217,35 +220,36 @@ Some files need manual setup:
 .config/
 ├── 🖥️ Terminal Emulators & Multiplexers
 │   ├── ghostty/            # Ghostty terminal configuration
-│   ├── kitty/              # Kitty terminal configuration  
-│   ├── wezterm/            # WezTerm configuration
+│   ├── kitty/              # Kitty terminal configuration
 │   └── tmux/               # Tmux config and plugins
 ├── 🐚 Shell & Command Line
 │   ├── fish/               # Fish shell config, functions, completions
-│   ├── atuin/              # Shell history configuration
-│   ├── broot/              # Interactive file tree navigator
-│   └── starship.toml       # Cross-shell prompt configuration
-├── 💻 Code Editors  
-│   └── nvim/               # Neovim configuration with lazy.nvim
+│   └── atuin/              # Shell history configuration
+├── 💻 Code Editors
+│   ├── nvim/               # Neovim configuration with lazy.nvim
+│   └── zed/                # Zed editor settings and keymap
 ├── 🔧 Development Tools
 │   ├── git/                # Git configuration and aliases
 │   ├── gh/                 # GitHub CLI configuration
-│   ├── gh-copilot/         # GitHub Copilot CLI settings
-│   ├── gh-dash/            # GitHub dashboard configuration
 │   └── gcloud/             # Google Cloud SDK configs
-├── 🪟 Window Management (macOS)
-│   ├── yabai/              # Tiling window manager config
-│   ├── skhd/               # Hotkey daemon configuration
-│   └── sketchybar/         # Custom macOS menu bar
+├── 🛠️ AI & Coding Agents
+│   └── agents/             # Pi agent skills and references
+├── 🗂️ File & Task Management
+│   ├── yazi/               # Terminal file manager with plugins
+│   ├── ytctl/              # YouTube controller CLI
+│   ├── todoist-cli/        # Todoist task management
+│   └── notion/             # Notion workspace config
 ├── 📊 System Monitoring
-│   ├── btop/               # System resource monitor theme
-│   └── wtf/                # Personal dashboard configuration
+│   └── btop/               # System resource monitor theme
 ├── 🚀 Productivity & Utilities
+│   ├── herdr/              # Terminal workspace manager configs
 │   ├── raycast/            # Launcher and productivity settings
 │   ├── op/                 # 1Password CLI configuration
+│   ├── resend/             # Email API CLI
+│   ├── openspec/           # OpenSpec configuration
+│   ├── qmd/                # QMD tool configuration
+│   ├── alchemy/            # Alchemy blockchain CLI config
 │   └── main.py             # Homebrew package management script
-├── ⌨️ Hardware Configuration
-│   └── glove80/            # Ergonomic keyboard layouts
 ├── 🔄 Shell Integration
 │   └── zprofile            # Homebrew environment setup
 └── 📚 Documentation
@@ -254,6 +258,7 @@ Some files need manual setup:
 
 ## Security Notes
 
-- Sensitive files (credentials, tokens) are excluded via `.gitignore`
-- SSH keys are NOT backed up - generate new ones after reset
+- Sensitive files (API keys, credentials, tokens) are excluded via `.gitignore`
+- SSH keys are NOT backed up — regenerate with Yubikey after reset
 - Re-authenticate with services after restore
+- GPG signing uses Yubikey (`id_ed25519_sk.pub`)
