@@ -1,0 +1,20 @@
+{
+  "config_version": 2,
+  "users": [
+    {
+      "id": "5720606",
+      "email": "keita.atticot@gmail.com",
+      "auth_mode": "read-write",
+      "auth_scope": "data:read_write,data:delete,project:delete"
+    },
+    {
+      "id": "51431530",
+      "email": "gbqdh5gypm@privaterelay.appleid.com",
+      "auth_mode": "read-write",
+      "auth_scope": "data:read_write,data:delete,project:delete"
+    }
+  ],
+  "user": {
+    "defaultUser": "51431530"
+  }
+}

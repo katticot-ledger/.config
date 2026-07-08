@@ -1,0 +1,10 @@
+collections:
+  obsidian-vault:
+    path: /Users/keita/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian
+    pattern: "**/*.md"
+    context:
+      10 Projects: Active projects with goals, tasks, and deliverables
+      20 Areas: Ongoing responsibilities and areas of focus
+      30 Resources: Reference materials, literature notes, and reusable knowledge
+      00 Hub: Dashboard, inbox, and navigation notes
+      90 Archive: Completed or archived items
