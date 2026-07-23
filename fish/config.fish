@@ -25,10 +25,6 @@ fish_add_path $HOME/.cargo/bin
 # Bun
 set --export BUN_INSTALL "$HOME/.config/bun"
 fish_add_path $BUN_INSTALL/bin
-# Windsurf
-fish_add_path $HOME/.codeium/windsurf/bin
-# Antigravity
-fish_add_path $HOME/.antigravity/antigravity/bin
 # Opencode
 fish_add_path $HOME/.opencode/bin
 # Obsidian CLI
@@ -48,9 +44,9 @@ set -gx PI_NOTIFY_SOUND_CMD "afplay /System/Library/Sounds/Pop.aiff"
 # on parent directories, which HANGS indefinitely when CWD is inside iCloud Drive.
 # Just ensure .gitignore exists with sensible defaults.
 if not test -f ~/.config/.gitignore
-    echo 'node_modules/' > ~/.config/.gitignore
-    echo '.DS_Store' >> ~/.config/.gitignore
-    echo '*.log' >> ~/.config/.gitignore
+    echo node_modules/ >~/.config/.gitignore
+    echo '.DS_Store' >>~/.config/.gitignore
+    echo '*.log' >>~/.config/.gitignore
 end
 
 # ===========================================
@@ -85,12 +81,9 @@ if status is-interactive
     abbr -a vsource source ~/.config/fish/config.fish
 
     alias lz lazygit
-    alias sshk 'ssh keita@72.62.46.79 -t tmux a'
     alias linear 'npx @schpet/linear-cli'
 
 end
-# Added by Antigravity
-fish_add_path /Users/keita/.antigravity/antigravity/bin
 
 # op command audit wrapper
 function op
@@ -111,47 +104,32 @@ end
 
 abbr -a gwp gws-powerhive
 abbr -a gws-per gws-personal
-# 🔑 Bitwarden quick password retrieval (auto-unlocks from Keychain)
-function bwp
-    set -l session (security find-generic-password -s "bw" -a "keita.atticot@gmail.com" -w 2>/dev/null | xargs -I{} bw unlock {} --raw 2>/dev/null)
-    bw get password $argv[1] --session "$session"
-end
 
 # 🔄 Lazy API key loader — call once before running pi to avoid blocking shell startup
-function load_pi_keys --description "Load all Pi agent API keys from 1Password & Bitwarden"
-    # --- 1Password keys (cached as universal vars) ---
-    if type -q op
-        if not set -q ANTHROPIC_API_KEY
-            set -l val (op item get 7c7ddeemjohrphdgxvtphjw6c4 --fields "api key" 2>/dev/null)
-            test -n "$val"; and set -Ux ANTHROPIC_API_KEY $val; and echo "✓ ANTHROPIC_API_KEY"
-        end
-
-        if not set -q GOOGLE_GENERATIVE_AI_API_KEY
-            set -l val (op item get z6wvmtuk3l2piffifw42ywd2ti --fields gemini 2>/dev/null)
-            test -n "$val"; and set -Ux GOOGLE_GENERATIVE_AI_API_KEY $val; and echo "✓ GOOGLE_GENERATIVE_AI_API_KEY"
-        end
-
-        if not set -q BRAVE_SEARCH_API_KEY
-            set -l val (op item get "Brave Search API" --fields credential --reveal 2>/dev/null)
-            test -n "$val"; and set -Ux BRAVE_SEARCH_API_KEY $val; and echo "✓ BRAVE_SEARCH_API_KEY"
-        end
+function load_pi_keys --description "Load API keys from pass (password store) for pi & other tools"
+    if not type -q pass
+        echo "⚠️  pass not found — install it or add keys manually"
+        return 1
     end
 
-    # --- Bitwarden session + keys (bwr not installed on this machine — placeholder) ---
-    if type -q bw
-        if not set -q BW_SESSION; or test -z "$BW_SESSION"
-            set -gx BW_SESSION (security find-generic-password -s "bw" -a "keita.atticot@gmail.com" -w 2>/dev/null | bw unlock --raw 2>/dev/null)
-            and echo "✓ BW_SESSION (unlocked)"
-        end
+    if not set -q BRAVE_SEARCH_API_KEY
+        set -l val (pass BRAVE_SEARCH_API_KEY 2>/dev/null)
+        test -n "$val"; and set -Ux BRAVE_SEARCH_API_KEY $val; and echo "✓ BRAVE_SEARCH_API_KEY"
+    end
+
+    if not set -q DEEPSEEK_API_KEY
+        set -l val (pass DEEPSEEK_API_KEY 2>/dev/null)
+        test -n "$val"; and set -Ux DEEPSEEK_API_KEY $val; and echo "✓ DEEPSEEK_API_KEY"
+    end
+
+    if not set -q ZAI_API_KEY
+        set -l val (pass zai/api-key 2>/dev/null)
+        test -n "$val"; and set -Ux ZAI_API_KEY $val; and echo "✓ ZAI_API_KEY"
     end
 
     echo "Done — keys are now available for pi and other tools."
 end
 
 set -gx PATH $PATH /opt/homebrew/opt/difftastic/bin
-
-
-# Added by Antigravity CLI installer
-set -gx PATH "/Users/keita/.local/bin" $PATH
 
 fish_add_path -a "/Users/keita/.foundry/bin"
