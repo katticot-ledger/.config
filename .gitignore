@@ -111,3 +111,8 @@ browseruse/extensions/
 
 # Skill reference repos (knowledge bases)
 crush/skills/
+
+### regenerable artifacts ###
+raycast-x/node-compile-cache/
+raycast-x/extensions/node_modules
+wtf/log.txt
