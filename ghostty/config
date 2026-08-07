@@ -9,7 +9,7 @@ font-feature = ss19
 
 # Thicken font strokes (macOS only, matches WezTerm's WebGpu rendering)
 font-thicken = true
-font-thicken-strength = 128
+font-thicken-strength = 80
 
 # ─── Theme ─────────────────────────────────────────────────────────────────────
 theme = TokyoNight
@@ -22,8 +22,7 @@ window-padding-x = 16
 window-padding-y = 12
 window-padding-balance = true
 
-# No title bar — clean frameless look (matches WezTerm RESIZE)
-macos-titlebar-style = hidden
+# No title bar — clean frameless look
 window-decoration = none
 
 # Maximize on startup
@@ -51,7 +50,5 @@ auto-update = off
 
 # ─── Keybinds ──────────────────────────────────────────────────────────────────
 
-# Unbind Ctrl+F so it passes through to terminal/SSH
-keybind = ctrl+f=unbind
 # Unbind Ctrl+Space so it passes through to tmux copy mode
 keybind = ctrl+space=unbind

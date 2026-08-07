@@ -133,3 +133,4 @@ end
 set -gx PATH $PATH /opt/homebrew/opt/difftastic/bin
 
 fish_add_path -a "/Users/keita/.foundry/bin"
+

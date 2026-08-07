@@ -1,5 +1,4 @@
 onboarding = false
-nested = true
 
 [keys]
 next_agent = "prefix+a"
@@ -18,12 +17,22 @@ type = "plugin_action"
 command = "cloudmanic.herdr-plus.quick-actions"
 description = "herdr-plus: quick actions"
 
+[[keys.command]]              # open in a split beside your work
+key = "prefix+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
+
+[[keys.command]]              # …or in its own tab
+key = "prefix+shift+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-viewer"
+
 [ui.toast]
 delivery = "terminal"
 
 [theme]
-name = "tokyo-night-day"
+name = "nord"
 
 [ui]
-agent_panel_scope = "all"
 show_agent_labels_on_pane_borders = true
+agent_panel_sort = "spaces"
