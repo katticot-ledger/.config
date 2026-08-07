@@ -254,80 +254,18 @@ vim.api.nvim_create_autocmd({ 'FileChangedShellPost' }, {
   end,
 })
 require('lazy').setup({
-  -- Add nvim-treesitter for improved syntax highlighting and parsing
-  {
-    'nvim-treesitter/nvim-treesitter',
-    build = ':TSUpdate',
-    event = { 'BufReadPre', 'BufNewFile' },
-    dependencies = { 'nvim-treesitter/nvim-treesitter-textobjects' },
-    config = function()
-      require('nvim-treesitter.configs').setup({
-        -- Add languages that you work on regularly here to improve startup time.
-        -- If not listed, depend on `ensure_installed = 'all'` or `:TSUpdate`
-        ensure_installed = { 'markdown', 'markdown_inline', 'lua', 'vim', 'vimdoc', 'query' },
-        -- Autoinstall languages that are not installed. Defaults to false (but you can change this to true if you like).
-        auto_install = true,
-        highlight = { enable = true },
-        indent = { enable = true },
-        -- Note: incremental_selection module removed in nvim-treesitter main branch
-        -- Use alternative: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-        textobjects = {
-          select = {
-            enable = true,
-            lookahead = true, -- Automatically jump to the next node if item was not found for current node
-            keymaps = {
-              -- You can use the capture groups defined in textobjects.scm
-              ['af'] = '@function.outer',
-              ['if'] = '@function.inner',
-              ['ac'] = '@class.outer',
-              ['ic'] = '@class.inner',
-            },
-          },
-          move = {
-            enable = true,
-            set_jumps = true, -- whether to set jumps in the jumplist
-            goto_next_start = {
-              [']m'] = '@function.outer',
-              [']]'] = '@class.outer',
-            },
-            goto_next_end = {
-              [']M'] = '@function.outer',
-              [']['] = '@class.outer',
-            },
-            goto_previous_start = {
-              ['[m'] = '@function.outer',
-              ['[['] = '@class.outer',
-            },
-            goto_previous_end = {
-              ['[M'] = '@function.outer',
-              ['[]'] = '@class.outer',
-            },
-          },
-          swap = {
-            enable = true,
-            swap_next = {
-              ['<leader>a'] = '@parameter.inner',
-            },
-            swap_previous = {
-              ['<leader>A'] = '@parameter.inner',
-            },
-          },
-        },
-      })
-    end,
-  },
-
   -- LSP Configuration
   {
     'neovim/nvim-lspconfig',
     dependencies = { 'williamboman/mason.nvim', 'williamboman/mason-lspconfig.nvim' },
     config = function()
       require('mason').setup()
-      require('mason-lspconfig').setup({ ensure_installed = { 'lua_ls', 'jsonls', 'marksman' } })
+      require('mason-lspconfig').setup({ ensure_installed = { 'lua_ls', 'jsonls', 'marksman', 'harper_ls' } })
       local lspconfig = require('lspconfig')
       lspconfig.lua_ls.setup { settings = { Lua = { diagnostics = { globals = { 'vim' } } } } }
       lspconfig.jsonls.setup { }
       lspconfig.marksman.setup { }
+      lspconfig.harper_ls.setup { }
 
       -- Global LSP keymaps
       vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = '[G]oto [D]efinition' })
