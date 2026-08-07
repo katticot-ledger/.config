@@ -1,0 +1,34 @@
+[[mgr.prepend_keymap]]
+on   = "?"
+run  = "help"
+desc = "Open help menu"
+
+[[mgr.prepend_keymap]]
+on   = "d"
+run  = "remove --force"
+desc = "Trash selected files (no confirm)"
+
+[[mgr.prepend_keymap]]
+on   = "D"
+run  = "remove --permanently --force"
+desc = "Permanently delete selected files (no confirm)"
+
+[[mgr.prepend_keymap]]
+on   = "H"
+run  = "plugin duckdb -1"
+desc = "Scroll one column to the left"
+
+[[mgr.prepend_keymap]]
+on   = "L"
+run  = "plugin duckdb +1"
+desc = "Scroll one column to the right"
+
+[[mgr.prepend_keymap]]
+on   = ["g", "o"]
+run  = "plugin duckdb -open"
+desc = "Open with duckdb"
+
+[[mgr.prepend_keymap]]
+on   = ["g", "u"]
+run  = "plugin duckdb -ui"
+desc = "Open with duckdb UI"

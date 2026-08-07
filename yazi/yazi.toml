@@ -1,4 +1,65 @@
-[plugin]
-prepend_previewers = [
-  { name = "*.md", run = "glow" },
-]
+[[plugin.prepend_previewers]]
+url = "*.md"
+run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
+
+[[plugin.prepend_previewers]]
+url = "*.csv"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.tsv"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.json"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.parquet"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.txt"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.xlsx"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.db"
+run = "duckdb"
+
+[[plugin.prepend_previewers]]
+url = "*.duckdb"
+run = "duckdb"
+
+[[plugin.prepend_preloaders]]
+url = "*.csv"
+run = "duckdb"
+multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.tsv"
+run = "duckdb"
+multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.json"
+run = "duckdb"
+multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.parquet"
+run = "duckdb"
+multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.txt"
+run = "duckdb"
+multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.xlsx"
+run = "duckdb"
+multi = false
