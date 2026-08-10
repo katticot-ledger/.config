@@ -16,7 +16,7 @@ theme = TokyoNight
 
 # ─── Window ────────────────────────────────────────────────────────────────────
 background-opacity = 0.96
-background-blur = 20
+# background-blur = 20   # disabled: known memory-growth issues on macOS; re-enable and watch RSS if you want it back
 
 window-padding-x = 16
 window-padding-y = 12
@@ -42,7 +42,7 @@ cursor-style-blink = true
 macos-option-as-alt = left
 
 # ─── Scrollback ────────────────────────────────────────────────────────────────
-scrollback-limit = 10000000
+scrollback-limit = 100000
 
 # ─── Misc ──────────────────────────────────────────────────────────────────────
 confirm-close-surface = false
