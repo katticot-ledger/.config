@@ -171,8 +171,35 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highl
 -- 🛠️ DIAGNOSTICS
 -- ==================================================
 
--- Open diagnostic quickfix list
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+local diagnostic_signs = vim.g.have_nerd_font
+    and {
+      text = {
+        [vim.diagnostic.severity.ERROR] = '',
+        [vim.diagnostic.severity.WARN] = '',
+        [vim.diagnostic.severity.HINT] = '',
+        [vim.diagnostic.severity.INFO] = '',
+      },
+    }
+  or true
+
+vim.diagnostic.config {
+  severity_sort = true,
+  signs = diagnostic_signs,
+  underline = true,
+  update_in_insert = false,
+  virtual_text = { source = 'if_many', spacing = 2 },
+  virtual_lines = false,
+  float = { border = 'rounded', source = 'always' },
+}
+
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic' })
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump { count = -1, float = true }
+end, { desc = 'Previous diagnostic' })
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump { count = 1, float = true }
+end, { desc = 'Next diagnostic' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic location list' })
 
 -- ==================================================
 -- 📂 FILE NAVIGATION
@@ -254,30 +281,6 @@ vim.api.nvim_create_autocmd({ 'FileChangedShellPost' }, {
   end,
 })
 require('lazy').setup({
-  -- LSP Configuration
-  {
-    'neovim/nvim-lspconfig',
-    dependencies = { 'williamboman/mason.nvim', 'williamboman/mason-lspconfig.nvim' },
-    config = function()
-      require('mason').setup()
-      require('mason-lspconfig').setup({ ensure_installed = { 'lua_ls', 'jsonls', 'marksman', 'harper_ls' } })
-      local lspconfig = require('lspconfig')
-      lspconfig.lua_ls.setup { settings = { Lua = { diagnostics = { globals = { 'vim' } } } } }
-      lspconfig.jsonls.setup { }
-      lspconfig.marksman.setup { }
-      lspconfig.harper_ls.setup { }
-
-      -- Global LSP keymaps
-      vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = '[G]oto [D]efinition' })
-      vim.keymap.set('n', 'gr', vim.lsp.buf.references, { desc = '[G]oto [R]eferences' })
-      vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { desc = '[G]oto [D]eclaration' })
-      vim.keymap.set('n', 'gI', vim.lsp.buf.implementation, { desc = '[G]oto [I]mplementation' })
-      vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, { desc = '[G]oto [T]ype [D]efinition' })
-      vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = 'Hover Documentation' })
-      vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { desc = '[R]e[n]ame' })
-      vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { desc = '[C]ode [A]ction' })
-    end,
-  },
   -- Lualine for statusline
   {
     'nvim-lualine/lualine.nvim',
