@@ -3,27 +3,18 @@ return {
     'yetone/avante.nvim',
     version = false, -- Never set to '*'! avante.nvim under rapid development
     event = 'VeryLazy',
-    build = vim.fn.has('win32') ~= 0
-        and 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false'
-        or 'make',
+    build = vim.fn.has 'win32' ~= 0 and 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' or 'make',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
       'nvim-tree/nvim-web-devicons',
       { 'folke/snacks.nvim', optional = true },
-      {
-        'MeanderingProgrammer/render-markdown.nvim',
-        opts = {
-          file_types = { 'markdown', 'Avante' },
-        },
-        ft = { 'markdown', 'Avante' },
-      },
+      'MeanderingProgrammer/render-markdown.nvim',
     },
     opts = {
-      provider = 'opencode',
-      auto_suggestions_provider = 'opencode',
+      provider = 'opencode', -- Default ACP agent. Switch agent with :AvanteSwitchProvider or set to 'codex'.
       behaviour = {
-        auto_suggestions = false,
+        auto_suggestions = false, -- ACP agents can't drive suggestions (that path uses API providers only)
         auto_set_highlight_group = true,
         auto_set_keymaps = true,
         auto_apply_diff_after_generation = false,
@@ -33,11 +24,28 @@ return {
         auto_approve_tool_permissions = true,
         acp_follow_agent_locations = true,
       },
-      -- ACP: use opencode as the agent with DeepSeek V4 Flash Free
+      -- ACP agents (Agent Client Protocol stdio servers).
+      -- Both agents advertise models/modes over ACP; pick them in the sidebar
+      -- with <leader>aM (model) / <leader>am (mode).
       acp_providers = {
         opencode = {
           command = 'opencode',
-          args = { 'acp', '--model', 'opencode/deepseek-v4-flash-free' },
+          -- NOTE: `opencode acp` has no --model flag (verified on opencode 1.18.11).
+          -- An unknown flag makes it print help and exit, killing the ACP session.
+          -- Select the model in the sidebar with <leader>aM instead.
+          args = { 'acp' },
+        },
+        codex = {
+          -- Official Codex ACP adapter: npm i -g @agentclientprotocol/codex-acp
+          -- Reuses `codex login` auth (~/.codex/auth.json); falls back to OPENAI_API_KEY.
+          command = 'codex-acp',
+          args = {},
+          env = {
+            NODE_NO_WARNINGS = '1',
+            HOME = os.getenv('HOME'),
+            PATH = os.getenv('PATH'),
+            OPENAI_API_KEY = os.getenv('OPENAI_API_KEY'),
+          },
         },
       },
       windows = {
@@ -69,6 +77,8 @@ return {
           add_file = '@',
           close = 'q',
         },
+        select_acp_model = '<leader>aM', -- Select ACP agent model
+        select_acp_mode = '<leader>am', -- Select ACP agent mode (codex: read-only / agent / agent-full-access)
       },
       highlights = {
         diff = {
@@ -80,15 +90,15 @@ return {
         autojump = true,
         override_timeoutlen = 500,
       },
-      hints = { enabled = true },
     },
     keys = {
-      { '<leader>aa', '<cmd>AvanteAsk<CR>', desc = 'Ask avante (OpenCode ACP)' },
+      { '<leader>aa', '<cmd>AvanteAsk<CR>', desc = 'Ask avante (ACP agent)' },
       { '<leader>at', '<cmd>AvanteToggle<CR>', desc = 'Toggle avante sidebar' },
       { '<leader>ar', '<cmd>AvanteRefresh<CR>', desc = 'Refresh avante' },
       { '<leader>af', '<cmd>AvanteFocus<CR>', desc = 'Focus avante sidebar' },
       { '<leader>an', '<cmd>AvanteAsk<CR>', desc = 'New ask' },
       { '<leader>ae', '<cmd>AvanteEdit<CR>', desc = 'Edit selected blocks', mode = 'x' },
+      { '<leader>ap', '<cmd>AvanteSwitchProvider<CR>', desc = 'Switch avante agent (opencode/codex)' },
     },
   },
 }
