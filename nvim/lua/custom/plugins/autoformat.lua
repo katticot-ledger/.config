@@ -50,6 +50,13 @@ return {
         lsp_format = false, -- Use fallback for unsupported file types
       },
       format_on_save = function(bufnr)
+        if vim.bo[bufnr].filetype == 'markdown' then
+          return {
+            timeout_ms = 2000,
+            lsp_format = 'never',
+          }
+        end
+
         local non_standard_filetypes = { c = true, cpp = true }
         local format_option = non_standard_filetypes[vim.bo[bufnr].filetype] and 'never' or 'fallback'
         return {
@@ -65,7 +72,7 @@ return {
         typescript = { 'prettier' },
         javascriptreact = { 'prettier' },
         typescriptreact = { 'prettier' },
-        markdown = { 'injected' }, -- Formats code blocks inside markdown without breaking tables
+        markdown = { 'injected', 'markdownlint-cli2' }, -- Format code blocks, then safely fix Markdown structure
         json = { 'prettierd', 'prettier', 'jq' },
       },
       formatters = {

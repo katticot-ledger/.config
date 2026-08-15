@@ -116,7 +116,7 @@ return {
           map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
 
           -- Marksman exposes a table-of-contents action everywhere in Markdown.
-          -- Keep it from burying prose fixes from Harper and LTeX+.
+          -- Keep it from burying prose fixes from Harper.
           map('<leader>ca', function()
             vim.lsp.buf.code_action {
               filter = function(action)

@@ -16,14 +16,6 @@ return {
           },
         },
       }
-      opts.servers.ltex_plus = {
-        filetypes = { 'markdown' },
-        settings = {
-          ltex = {
-            language = 'en-US',
-          },
-        },
-      }
     end,
   },
   {
