@@ -24,7 +24,8 @@
     "ErBlack",
     "byheaven",
     "tofrankie",
-    "alexi.build"
+    "alexi.build",
+    "veilwalker"
   ],
   "license": "MIT",
   "engines": {
@@ -665,7 +666,7 @@
           },
           "searchContent": {
             "type": "boolean",
-            "description": "Whether to search inside note content and enable tag filtering.\nSet to false for faster title/path-only search.\nDefaults to true."
+            "description": "Whether to search inside note content and enable tag filtering.\nSet to true only when the user needs full-text or tag search.\nDefaults to false (title/path only) so a single oversized Markdown\nfile cannot OOM the extension worker."
           }
         },
         "required": [
