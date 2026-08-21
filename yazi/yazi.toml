@@ -3,7 +3,7 @@ ratio = [1, 2, 5]
 
 [[plugin.prepend_previewers]]
 url = "*.md"
-run = 'piper -- CLICOLOR_FORCE=1 glow -w=$w -s=dark "$1"'
+run = 'piper -- leaf --inline=ansi --width=$w "$1"'
 
 [[plugin.prepend_previewers]]
 url = "*.csv"
