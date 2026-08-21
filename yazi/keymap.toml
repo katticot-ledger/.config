@@ -4,6 +4,16 @@ run  = "plugin toggle-pane max-preview"
 desc = "Maximize or restore the preview pane"
 
 [[mgr.prepend_keymap]]
+on   = "J"
+run  = "seek 5"
+desc = "Scroll preview down 5 lines"
+
+[[mgr.prepend_keymap]]
+on   = "K"
+run  = "seek -5"
+desc = "Scroll preview up 5 lines"
+
+[[mgr.prepend_keymap]]
 on   = "?"
 run  = "help"
 desc = "Open help menu"
