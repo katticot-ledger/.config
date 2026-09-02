@@ -83,6 +83,12 @@ if status is-interactive
     alias lz lazygit
     alias linear 'npx @schpet/linear-cli'
 
+    # 🌐 SSH shortcuts
+    alias hostinger-vpc 'ssh hostinger-vpc'
+    alias root-hostinger-vpc 'ssh root-hostinger-vpc'
+    abbr -a hv ssh hostinger-vpc
+    abbr -a rhv ssh root-hostinger-vpc
+
 end
 
 # op command audit wrapper
