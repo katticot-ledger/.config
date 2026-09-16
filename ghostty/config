@@ -52,3 +52,10 @@ auto-update = off
 
 # Unbind Ctrl+Space so it passes through to tmux copy mode
 keybind = ctrl+space=unbind
+
+# Unbind native Ghostty shortcuts so Kitty keyboard protocol forwards Cmd+T, Cmd+W, Cmd+K directly to Herdr
+keybind = cmd+t=unbind
+keybind = cmd+w=unbind
+keybind = cmd+k=unbind
+
+
