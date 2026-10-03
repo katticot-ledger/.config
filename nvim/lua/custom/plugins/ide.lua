@@ -125,6 +125,15 @@ return {
             }
           end, '[C]ode [A]ction', { 'n', 'x' })
 
+          -- Hop between lint issues (harper, markdownlint): next/previous,
+          -- showing the message in a floating window.
+          map('<Space>j', function()
+            vim.diagnostic.jump { count = 1, float = true }
+          end, '[J]ump to next diagnostic')
+          map('<Space>k', function()
+            vim.diagnostic.jump { count = -1, float = true }
+          end, 'Jump to [k]previous diagnostic')
+
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
