@@ -89,6 +89,20 @@ if status is-interactive
     abbr -a hv ssh hostinger-vpc
     abbr -a rhv ssh root-hostinger-vpc
 
+    # ⚡ AI Agents YOLO Mode (Skip Permissions / Approvals)
+    abbr -a agy-yolo 'agy --dangerously-skip-permissions'
+    abbr -a agyy 'agy --dangerously-skip-permissions'
+    abbr -a ay 'agy --dangerously-skip-permissions'
+
+    abbr -a claude-yolo 'claude --dangerously-skip-permissions'
+    abbr -a claudey 'claude --dangerously-skip-permissions'
+    abbr -a cy 'claude --dangerously-skip-permissions'
+
+    abbr -a codex-yolo 'codex --dangerously-bypass-approvals-and-sandbox'
+    abbr -a codexy 'codex --dangerously-bypass-approvals-and-sandbox'
+    abbr -a cdy 'codex --dangerously-bypass-approvals-and-sandbox'
+
+
 end
 
 # op command audit wrapper
@@ -140,3 +154,6 @@ set -gx PATH $PATH /opt/homebrew/opt/difftastic/bin
 
 fish_add_path -a "/Users/keita/.foundry/bin"
 
+
+# pi-ask-user: allow optional comment on ask_user prompts
+set -gx PI_ASK_USER_ALLOW_COMMENT true
