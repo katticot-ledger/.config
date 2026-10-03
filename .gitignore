@@ -97,9 +97,14 @@ gws*/cache/
 linear/credentials.toml
 resend/credentials.json
 notion/cache.json
+hcloud/
+rize-timing/
+fish/functions/omp.fish
 
-# Runtime logs
+# Runtime logs & state
 herdr/herdr-*.log
+herdr/herdr.sock*
+herdr/session-snapshots/
 
 # Plugin source repos (cloned by tool, not config)
 herdr/plugins/github/
@@ -116,3 +121,6 @@ crush/skills/
 raycast-x/node-compile-cache/
 raycast-x/extensions/node_modules
 wtf/log.txt
+turso_cli/
+jgit/
+
