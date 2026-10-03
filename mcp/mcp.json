@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "drawio": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@drawio/mcp"
+      ]
+    },
+    "exa": {
+      "url": "https://mcp.exa.ai/mcp"
+    }
+  }
+}
