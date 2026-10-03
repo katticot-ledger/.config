@@ -4,24 +4,14 @@ run  = "plugin toggle-pane max-preview"
 desc = "Maximize or restore the preview pane"
 
 [[mgr.prepend_keymap]]
-on   = "J"
-run  = "seek 5"
-desc = "Scroll preview down 5 lines"
-
-[[mgr.prepend_keymap]]
-on   = "K"
-run  = "seek -5"
-desc = "Scroll preview up 5 lines"
-
-[[mgr.prepend_keymap]]
 on   = "?"
 run  = "help"
 desc = "Open help menu"
 
 [[mgr.prepend_keymap]]
 on   = "d"
-run  = "remove --force"
-desc = "Trash selected files (no confirm)"
+run  = "remove"
+desc = "Trash selected files (with confirm)"
 
 [[mgr.prepend_keymap]]
 on   = "D"
@@ -47,3 +37,18 @@ desc = "Open with duckdb"
 on   = ["g", "u"]
 run  = "plugin duckdb -ui"
 desc = "Open with duckdb UI"
+
+[[mgr.prepend_keymap]]
+on   = "e"
+run  = "shell 'nvim %s' --block"
+desc = "Edit with Neovim"
+
+[[mgr.prepend_keymap]]
+on   = "<Enter>"
+run  = "lua 'local h = cx.active.current.hovered; if h and h:is_dir() then ya.emit(\"cd\", { h.url }); ya.emit(\"quit\") else ya.emit(\"open\") end'"
+desc = "CD into dir & quit, or open file"
+
+[[mgr.prepend_keymap]]
+on   = "o"
+run  = "open --interactive"
+desc = "Open with an opener (interactive)"

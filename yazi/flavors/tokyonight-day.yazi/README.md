@@ -3,7 +3,7 @@
 </div>
 
 <h3 align="center">
-	Example Flavor for <a href="https://github.com/sxyazi/yazi">Yazi</a>
+	Tokyonight Day Flavor for <a href="https://github.com/sxyazi/yazi">Yazi</a>
 </h3>
 
 ## 👀 Preview
@@ -12,31 +12,22 @@
 
 ## 🎨 Installation
 
-```bash
-ya pkg add Chromium-3-Oxide/everforest-medium
-```
-
-Or:
-
-```bash
-ya pack -a Chromium-3-Oxide/everforest-medium
+```sh
+ya pkg add kalidyasin/yazi-flavors:tokyonight-day
 ```
 
 ## ⚙️ Usage
 
-Add the these lines to your `theme.toml` configuration file to use it:
+Set the content of your `theme.toml` to enable it as your _light_ flavor:
 
 ```toml
 [flavor]
-dark = "everforest-medium"
+light = "tokyonight-day"
 ```
 
-For Yazi versions before 0.4:
+Make sure your `theme.toml` doesn't contain anything other than `[flavor]`, unless you want to override certain styles of this flavor.
 
-```toml
-[flavor]
-use = "everforest-medium"
-```
+See the [Yazi flavor documentation](https://yazi-rs.github.io/docs/flavors/overview) for more details.
 
 ## 📜 License
 

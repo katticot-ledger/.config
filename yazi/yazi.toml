@@ -22,10 +22,6 @@ url = "*.parquet"
 run = "duckdb"
 
 [[plugin.prepend_previewers]]
-url = "*.txt"
-run = "duckdb"
-
-[[plugin.prepend_previewers]]
 url = "*.xlsx"
 run = "duckdb"
 
@@ -58,11 +54,37 @@ run = "duckdb"
 multi = false
 
 [[plugin.prepend_preloaders]]
-url = "*.txt"
+url = "*.xlsx"
 run = "duckdb"
 multi = false
 
 [[plugin.prepend_preloaders]]
-url = "*.xlsx"
+url = "*.db"
 run = "duckdb"
 multi = false
+
+[[plugin.prepend_preloaders]]
+url = "*.duckdb"
+run = "duckdb"
+multi = false
+
+[opener]
+nvim = [
+	{ run = "nvim %s", desc = "Edit with Neovim", block = true },
+]
+brave = [
+	{ run = 'open -a "Brave Browser" %s', desc = "Open with Brave", block = false },
+]
+leaf = [
+	{ run = "leaf %s1", desc = "Open with Leaf", block = true },
+]
+reveal = [
+	{ run = "open -R %s1", desc = "Reveal", for = "macos" },
+]
+
+[open]
+prepend_rules = [
+	{ url = "*.html", use = "brave" },
+	{ url = "*.htm",  use = "brave" },
+	{ url = "*.md",   use = "leaf" },
+]
