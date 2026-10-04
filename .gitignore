@@ -118,8 +118,6 @@ browseruse/extensions/
 crush/skills/
 
 ### regenerable artifacts ###
-raycast-x/node-compile-cache/
-raycast-x/extensions/node_modules
 wtf/log.txt
 turso_cli/
 jgit/
