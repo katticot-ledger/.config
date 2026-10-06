@@ -133,12 +133,6 @@ Execute bash commands and translate environment changes to Fish.
 - **Features**: Debug mode available
 - **Dependencies**: `python3` or `python`
 
-### `br.fish` - Broot Integration
-Directory navigation with broot integration.
-- **Usage**: `br [arguments]`
-- **Features**: Command execution after navigation
-- **Dependencies**: `broot`
-
 ### `fisher.fish` - Fish Plugin Manager
 Comprehensive plugin management for Fish shell (version 4.4.3).
 - **Usage**: `fisher install|remove|update|list [plugins]`
