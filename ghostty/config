@@ -42,7 +42,8 @@ cursor-style-blink = true
 macos-option-as-alt = left
 
 # ─── Scrollback ────────────────────────────────────────────────────────────────
-scrollback-limit = 100000
+# Capped to prevent unbounded RAM usage from large build logs/streams
+scrollback-limit = 15000
 
 # ─── Misc ──────────────────────────────────────────────────────────────────────
 confirm-close-surface = false
