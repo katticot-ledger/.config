@@ -1,0 +1,25 @@
+[appearance]
+glyphs = "tiny"
+theme = "tokyonight"
+border_style = "hidden"
+hide_window_buttons = true
+hide_scrollbar = true
+gap = 0
+panel_padding = 1
+
+
+
+[appearance.sidebar]
+enabled = true
+show_glyphs = true
+
+[daemon]
+resume_agents = "auto"
+# Keep pane history across restarts, capped so restore banners can't pile up
+persist_scrollback = true
+persist_scrollback_lines = 2000
+
+[keybindings.prefix_mode]
+prefix_scrollback = ['S']
+prefix_session_switcher = ['s']
+
