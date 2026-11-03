@@ -1,0 +1,342 @@
+#!/bin/sh
+# ovf-helper: backend for the `ovf` fish function (fzf picker over `ov find`).
+# fzf calls it for every reload, preview, footer and key action.
+#
+#   fetch <query>            print TSV rows for fzf (video or chunk mode)
+#   refetch                  fetch the last query again (cached; for mode switch and resize)
+#   preview <doc|chunk|tree|keys> <uri> <dir> <score> <abstract> <chunks> <matched>
+#   accept <file>            print URIs for fzf's {+f} lines; exit 1 when none
+#   meta <summary-uri>       append "uri<TAB>title<TAB>channel<TAB>duration" to the cache
+#   errors                   show the last raw ov error output
+#   footer | change | mode | toggle | cycle | keys-toggle | enter   fzf actions for transform binds
+#
+# Env (set by ovf): OVF_N, OVF_FETCH_N, OVF_ARGS, OVF_ERR, OVF_LASTQ, OVF_MODE, OVF_RAW
+#
+# Unit of a row:
+#   video mode (default)  one row per YouTube video: its summary plus any
+#                         Full_Transcript chunks that matched, grouped by folder.
+#   chunk mode (ctrl-t)   one row per matched file, as ov returns them.
+# Other results (memories, skills, other docs) are always one row each.
+#
+# Row fields (TSV):
+#   1 display (aligned: title │ category │ matches)  2 accept URI (empty = resolve via ov ls)
+#   3 dir key  4 score  5 abstract  6 chunk URIs, best first (space separated)
+#   7 matched description for the preview header
+
+set -u
+self=$0
+cmd=${1:-}
+[ $# -gt 0 ] && shift
+
+# Colour only on a capable terminal (clig.dev: honour NO_COLOR and TERM=dumb).
+if [ -n "${NO_COLOR:-}" ] || [ "${TERM:-}" = dumb ]; then
+	COLOR=0 DIM='' RED='' BOLD='' OFF=''
+else
+	COLOR=1 DIM=$(printf '\033[2m') RED=$(printf '\033[31m') BOLD=$(printf '\033[1m') OFF=$(printf '\033[0m')
+fi
+HINTS="enter pick · tab mark · ctrl-t videos/chunks · ctrl-k keys"
+MIN_CHUNK=200 # bytes; smaller transcript tails (e.g. "one") are never shown as evidence
+CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/ovf
+TITLES=$CACHE_DIR/titles.tsv
+
+mode_now() { cat "$OVF_MODE" 2>/dev/null || echo video; }
+prompt_for() { [ "$(mode_now)" = chunk ] && echo 'ov chunks> ' || echo 'ov> '; }
+
+# Stage 1: ov JSON -> one compact JSON record per row.
+# `ov find -o json` prints a `cmd: ...` line on stdout before the JSON, and
+# error envelopes arrive without it. -R + `fromjson?` skips non-JSON lines.
+COMMON_JQ='
+def clean: sub("\\.md$"; "") | sub("_[0-9a-f]{8}$"; "") | sub("_4more$"; "") | gsub("_"; " ");
+def classify:
+  .uri as $u
+  | if ($u | test("/Full_Transcript/Full_Transcript_[0-9]+\\.md$")) then
+      . + {kind: "T", key: ($u | sub("/Full_Transcript/[^/]+$"; "")),
+           n: ($u | capture("_(?<n>[0-9]+)\\.md$").n | tonumber)}
+    elif ($u | test("_4more_[0-9a-f]+\\.md$")) then
+      . + {kind: "S", key: ($u | sub("/[^/]+$"; ""))}
+    else . + {kind: "X", key: $u} end;
+def category:
+  if test("^viking://resources/youtube/processed/") then (split("/")[5] // "video") else "" end;
+def items:
+  fromjson? // empty | select(.ok == true) | .result
+  | ((.resources // []) + (.memories // []) + (.skills // []))[]
+  | {uri, score, ct: .context_type, abstract: ((.abstract // "") | gsub("[\t\n\r]+"; " "))}
+  | classify;
+def other_label:
+  if .ct != "resource" then .ct
+  elif (.uri | endswith("/.abstract.md")) then "abstract"
+  elif (.uri | endswith("/.overview.md")) then "overview"
+  else "doc" end;
+def other_title:
+  (.uri | ltrimstr("viking://") | split("/")) as $p
+  | if (.uri | test("/\\.(abstract|overview)\\.md$")) then $p[-2] else $p[-1] end | clean;
+# [1,2,3,5] -> "1–3, 5"
+def ranges:
+  reduce .[] as $x ([]; if length > 0 and .[-1][1] == $x - 1 then .[-1][1] = $x else . + [[$x, $x]] end)
+  | map(if .[0] == .[1] then "\(.[0])" else "\(.[0])–\(.[1])" end) | join(", ");
+def other: {title: other_title, cat: "", tag: other_label, uri, key, score, abstract, chunks: "", matched: other_label};
+'
+
+VIDEO_JQ="$COMMON_JQ"'
+[inputs | items] | group_by(.key)
+| map(
+    (map(.score) | max) as $best
+    | (map(select(.kind == "S")) | .[0]) as $s
+    | (map(select(.kind == "T")) | sort_by(-.score)) as $t
+    | if .[0].kind == "X" then .[0] | other
+      else
+        ([if $s then 1 else empty end] | length) + ($t | length) as $count
+        | ([if $s then "summary" else empty end]
+           + (if ($t | length) > 0
+              then ["transcript part" + (if ($t | length) > 1 then "s " else " " end) + ($t | map(.n) | sort | ranges)]
+              else [] end)) as $what
+        | {title: (.[0].key | split("/")[-1] | clean), cat: (.[0].key | category),
+           tag: "\($count) match" + (if $count > 1 then "es" else "" end),
+           uri: ($s.uri // ""), key: .[0].key, score: $best, abstract: ($s.abstract // ""),
+           chunks: ($t | map(.uri) | join(" ")), matched: ($what | join(" · "))}
+      end)
+| sort_by(-.score) | .[:($n | tonumber)][] | @json'
+
+CHUNK_JQ="$COMMON_JQ"'
+[inputs | items] | sort_by(-.score) | .[:($n | tonumber)][]
+| if .kind == "X" then other
+  else (if .kind == "S" then "summary" else "transcript \(.n)" end) as $tag
+    | {title: (.key | split("/")[-1] | clean), cat: (.key | category), tag: $tag,
+       uri, key, score, abstract, chunks: (if .kind == "T" then .uri else "" end), matched: $tag}
+  end | @json'
+
+# Stage 2: records + title cache -> aligned TSV rows.
+FORMAT_JQ='
+def dim: if $color == "1" then "\u001b[2m" + . + "\u001b[0m" else . end;
+def fit($w): if length > $w then .[:($w - 1)] + "…" elif length < $w then . + (" " * ($w - length)) else . end;
+($titles | split("\n") | map(select(length > 0) | split("\t") | {key: .[0], value: .[1]}) | from_entries) as $t
+| ($width | tonumber) as $w
+| (if $w < 30 then 30 else $w end) as $w
+| ($w - 12 - 10 - 6) as $tw
+| inputs | fromjson
+| (($t[.uri] // "") | if . == "" or . == "-" then null else . end) as $real
+| [ (($real // .title) | fit($tw)) + (" │ " | dim) + ((.cat | fit(12)) | dim) + (" │ " | dim) + (.tag | dim),
+    .uri, .key, (.score * 1000 | round / 1000 | tostring), .abstract, .chunks, .matched ]
+| @tsv'
+
+# Summary URI of a video folder (75 ms); empty when there is none.
+summary_of() {
+	ov ls -o json "$1" 2>/dev/null |
+		jq -rR 'fromjson? // empty | .result[]? | select(.isDir | not) | .uri | select(test("_4more_[0-9a-f]+\\.md$"))' |
+		head -n 1
+}
+
+strip_front_matter() { awk 'NR == 1 && /^---$/ { fm = 1; next } fm && /^---$/ { fm = 0; next } !fm'; }
+
+# Value of a front-matter key, JSON-unquoted ("Herdr — Setup" -> "Herdr — Setup").
+fm_value() { sed -n "s/^$1: //p" | head -n 1 | jq -rR 'fromjson? // .' | tr -d '\t'; }
+
+human_error() {
+	raw=$1
+	case $raw in
+	*UNAVAILABLE*[Oo]llama* | *UNAVAILABLE*embedding*) echo "search backend down (embedding model) · type to retry · ctrl-e details" ;;
+	*UNAVAILABLE*"Network error"* | *"Connection Error"*) echo "OpenViking server unreachable · ctrl-e details" ;;
+	*FAILED_PRECONDITION*ovcli.conf*) echo "ov not configured · run: ov config" ;;
+	*) printf '%.80s · ctrl-e details\n' "$raw" ;;
+	esac
+}
+
+case $cmd in
+refetch)
+	# Re-render the last semantic search (mode switch, resize); uses the cached raw result.
+	exec "$self" fetch "$(cat "$OVF_LASTQ" 2>/dev/null)"
+	;;
+fetch)
+	q=${1:-}
+	: >"$OVF_ERR"
+	[ -z "$q" ] && exit 0
+	# Reuse the raw result when only the mode changed (ov find takes ~1.2 s); never reuse a failure.
+	if [ "$q" != "$(cat "$OVF_LASTQ" 2>/dev/null)" ] || ! grep -q '"ok":true' "$OVF_RAW" 2>/dev/null; then
+		printf '%s' "$q" >"$OVF_LASTQ"
+		# OVF_ARGS is a space-separated flag list built by ovf; split on purpose.
+		# shellcheck disable=SC2086
+		ov find -o json -n "${OVF_FETCH_N:-100}" ${OVF_ARGS:-} -- "$q" >"$OVF_RAW" 2>&1
+		rc=$?
+	else
+		rc=0
+	fi
+	jq -rR 'fromjson? // empty | select(.ok == false) | "\(.error.code): \(.error.message)"' <"$OVF_RAW" >"$OVF_ERR"
+	if [ "$rc" -ne 0 ] && [ ! -s "$OVF_ERR" ]; then
+		grep -v '^cmd:' "$OVF_RAW" | grep -v '^[[:space:]]*$' | head -n 1 >"$OVF_ERR"
+	fi
+	if [ "$(mode_now)" = chunk ]; then prog=$CHUNK_JQ; else prog=$VIDEO_JQ; fi
+	recs=$(jq -nrR --arg n "${OVF_N:-30}" "$prog" <"$OVF_RAW")
+	[ -z "$recs" ] && exit 0
+	# Fill the title cache for summaries not seen before (8 parallel reads, ~0.2 s once).
+	mkdir -p "$CACHE_DIR" && touch "$TITLES"
+	seen=$OVF_ERR.seen
+	{ cut -f1 "$TITLES"; echo; } >"$seen"
+	printf '%s\n' "$recs" | jq -r 'select(.uri | test("_4more_[0-9a-f]+\\.md$")) | .uri' |
+		grep -vxF -f "$seen" |
+		xargs -P 8 -n 1 "$self" meta 2>/dev/null
+	# List width: ovf puts the preview on the right only at >= 120 columns
+	# (--preview-window '...,<66(down,50%)': 55% of 120 = 66), otherwise below.
+	# FZF_COLUMNS is 0 on fzf's start event, so fall back to the width ovf saw.
+	cols=${FZF_COLUMNS:-0}
+	[ "$cols" -gt 0 ] 2>/dev/null || cols=${OVF_COLS:-120}
+	if [ "$cols" -ge 120 ]; then width=$((cols * 45 / 100 - 2)); else width=$((cols - 2)); fi
+	printf '%s\n' "$recs" |
+		jq -nrR --arg color "$COLOR" --arg width "$width" \
+			--rawfile titles "$TITLES" "$FORMAT_JQ"
+	;;
+meta)
+	fm=$(ov read "$1" 2>/dev/null | head -n 20)
+	title=$(printf '%s\n' "$fm" | fm_value title)
+	channel=$(printf '%s\n' "$fm" | fm_value channel)
+	dur=$(printf '%s\n' "$fm" | fm_value duration)
+	# One short line per write, so parallel appends stay intact.
+	printf '%s\t%s\t%s\t%s\n' "$1" "${title:--}" "$channel" "$dur" >>"$TITLES"
+	;;
+preview)
+	view=$1 uri=$2 dir=$3 score=${4:-} abstract=${5:-} chunks=${6:-} matched=${7:-}
+	# Snippets match the semantic query, not filter-mode text.
+	q=$(cat "$OVF_LASTQ" 2>/dev/null)
+	cols=${FZF_PREVIEW_COLUMNS:-80}
+	case $view in
+	keys)
+		cat <<EOF
+${BOLD}keys${OFF}
+  enter       print the picked URI(s) and exit
+  tab         mark / unmark a row (multi-pick)
+  esc         cancel (exit 130)
+
+  type        new semantic search (ov> prompt)
+  ctrl-f      switch to fuzzy-filtering the rows on screen (filter> prompt)
+  ctrl-t      switch rows: one per video  /  one per matched file
+
+  ctrl-o      preview: doc → best transcript chunk → folder tree
+  ctrl-/      preview layout: right → bottom → hidden
+  ctrl-k      this list / back to the doc
+
+  ctrl-v      read the doc in a pager, then come back
+  alt-enter   read the doc in a pager and exit
+  ctrl-y      copy the URI(s)
+  ctrl-e      show the last raw error from ov
+
+${BOLD}rows${OFF}
+  title │ category │ N matches   (summary + matching transcript parts)
+EOF
+		exit 0
+		;;
+	tree)
+		t=$dir
+		case $t in *.md) t=$(dirname "$t") ;; esac
+		ov tree "$t" 2>&1 | grep -v '^cmd:'
+		exit 0
+		;;
+	esac
+	# First matched chunk big enough to be real evidence.
+	best=""
+	for c in $chunks; do
+		[ "$(ov read "$c" 2>/dev/null | head -c "$MIN_CHUNK" | wc -c)" -ge "$MIN_CHUNK" ] && {
+			best=$c
+			break
+		}
+	done
+	if [ "$view" = chunk ]; then
+		if [ -n "$best" ]; then
+			printf '%s▸ %s%s\n\n' "$BOLD" "${best##*/}" "$OFF"
+			ov read "$best" 2>&1 | fold -s -w "$cols"
+		else
+			printf '%s(no transcript part matched)%s\n' "$DIM" "$OFF"
+		fi
+		exit 0
+	fi
+	[ -z "$uri" ] && uri=$(summary_of "$dir")
+	m=$(grep -F "$uri	" "$TITLES" 2>/dev/null | head -n 1)
+	channel=$(printf '%s' "$m" | cut -f3)
+	dur=$(printf '%s' "$m" | cut -f4)
+	printf '%s' "$DIM"
+	[ -n "$channel" ] && printf '%s · ' "$channel"
+	[ -n "$dur" ] && printf '%s · ' "$dur"
+	printf 'score %s\nmatched: %s%s\n' "$score" "$matched" "$OFF"
+	if [ -n "$best" ]; then
+		n=$(printf '%s' "$best" | sed -n 's/.*_\([0-9][0-9]*\)\.md$/\1/p')
+		words=$(printf '%s' "$q" | tr -cs '[:alnum:]' '|' | sed 's/^|//; s/|$//')
+		snip=""
+		# BSD grep caps repetition counts at 255.
+		[ -n "$words" ] && snip=$(ov read "$best" 2>/dev/null | tr '\n' ' ' |
+			grep -o -i -E ".{0,250}($words).{0,250}" | head -n 1)
+		[ -z "$snip" ] && snip=$(ov read "$best" 2>/dev/null | tr '\n' ' ' | head -c 500)
+		printf '\n%s▸ transcript part %s%s\n' "$BOLD" "$n" "$OFF"
+		printf '…%s…\n' "$snip" | fold -s -w "$cols"
+	fi
+	if [ -n "$uri" ]; then
+		case $uri in *_4more_*) printf '\n%s▸ summary%s\n' "$BOLD" "$OFF" ;; *) echo ;; esac
+		ov read "$uri" 2>&1 | head -c 20000 | strip_front_matter | fold -s -w "$cols"
+	elif [ -n "$abstract" ]; then
+		printf '\n%s\n' "$abstract" | fold -s -w "$cols"
+	fi
+	;;
+accept)
+	# $1 is fzf's {+f}: one selected TSV line per row. Exit 1 when nothing was picked.
+	n=0
+	while IFS= read -r line; do
+		uri=$(printf '%s\n' "$line" | cut -f2)
+		dir=$(printf '%s\n' "$line" | cut -f3)
+		[ -z "$uri" ] && uri=$(summary_of "$dir")
+		[ -z "$uri" ] && uri=$dir
+		[ -z "$uri" ] && continue
+		printf '%s\n' "$uri"
+		n=$((n + 1))
+	done <"$1"
+	[ "$n" -gt 0 ]
+	;;
+errors)
+	if [ -s "$OVF_RAW" ]; then grep -v '^cmd:' "$OVF_RAW"; else echo "no error"; fi
+	;;
+footer)
+	if [ -s "$OVF_ERR" ]; then
+		printf '%s%s%s\n' "$RED" "$(human_error "$(head -n 1 "$OVF_ERR")")" "$OFF"
+	elif [ -z "${FZF_QUERY:-}" ]; then
+		case ${FZF_PROMPT:-} in filter*) printf '%s\n' "$HINTS" ;; *) printf 'type to search · %s\n' "$HINTS" ;; esac
+	else
+		printf '%s\n' "$HINTS"
+	fi
+	;;
+change)
+	# Live semantic search only in ov modes; filter mode is plain fzf matching.
+	# Each new reload kills the previous one, so the sleep debounces typing.
+	case ${FZF_PROMPT:-} in filter*) ;; *) printf 'change-footer(searching…)+reload:sleep 0.15; %s fetch {q}\n' "$self" ;; esac
+	;;
+mode)
+	case ${FZF_PROMPT:-} in
+	filter*) printf 'disable-search+change-prompt(%s)+change-query:%s\n' "$(prompt_for)" "$(cat "$OVF_LASTQ" 2>/dev/null)" ;;
+	*) printf 'enable-search+change-prompt(filter> )+clear-query\n' ;;
+	esac
+	;;
+toggle)
+	if [ "$(mode_now)" = chunk ]; then echo video >"$OVF_MODE"; else echo chunk >"$OVF_MODE"; fi
+	case ${FZF_PROMPT:-} in
+	filter*) printf 'reload:%s refetch\n' "$self" ;;
+	*) printf 'change-prompt(%s)+reload:%s refetch\n' "$(prompt_for)" "$self" ;;
+	esac
+	;;
+cycle)
+	case ${FZF_PREVIEW_LABEL:-} in
+	*doc*) next=chunk ;;
+	*chunk*) next=tree ;;
+	*) next=doc ;;
+	esac
+	printf 'change-preview-label( %s )+change-preview:%s preview %s {2} {3} {4} {5} {6} {7}\n' "$next" "$self" "$next"
+	;;
+enter)
+	# fzf skips become(...{+f}) on an empty list; exit 1 there instead (clig.dev exit codes).
+	if [ "${FZF_MATCH_COUNT:-0}" -eq 0 ]; then echo 'become:exit 1'; else printf 'become:%s accept {+f}\n' "$self"; fi
+	;;
+keys-toggle)
+	case ${FZF_PREVIEW_LABEL:-} in
+	*keys*) printf 'change-preview-label( doc )+change-preview:%s preview doc {2} {3} {4} {5} {6} {7}\n' "$self" ;;
+	*) printf 'change-preview-label( keys )+change-preview:%s preview keys\n' "$self" ;;
+	esac
+	;;
+*)
+	echo "usage: ovf-helper fetch|preview|accept|meta|errors|footer|change|mode|toggle|cycle|keys-toggle" >&2
+	exit 2
+	;;
+esac

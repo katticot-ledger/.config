@@ -1,5 +1,5 @@
 # ovf: semantic search over OpenViking with fzf. Prints the picked viking:// URIs.
-# Backend logic lives in ~/.local/bin/ovf-helper (POSIX sh, called by fzf).
+# Backend logic lives in $__fish_config_dir/ovf-helper (POSIX sh, called by fzf).
 # Exit status: 0 picked, 1 nothing to pick, 2 bad usage / missing tool, 130 cancelled.
 function ovf --description 'fzf picker over ov find; prints picked viking:// URIs'
     argparse -n ovf h/help 'n/limit=' 'u/uri=' 't/threshold=' 'L/level=' \
@@ -27,7 +27,7 @@ Titles are cached in ~/.cache/ovf/titles.tsv (safe to delete)."
     end
 
     # Check early and bail out (clig.dev).
-    set -l helper ~/.local/bin/ovf-helper
+    set -l helper $__fish_config_dir/ovf-helper
     set -l missing
     for tool in ov jq fzf
         command -q $tool; or set -a missing $tool
