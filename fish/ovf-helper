@@ -6,6 +6,7 @@
 #   refetch                  fetch the last query again (cached; for mode switch and resize)
 #   preview <doc|chunk|tree|keys> <uri> <dir> <score> <abstract> <chunks> <matched>
 #   accept <file>            print URIs for fzf's {+f} lines; exit 1 when none
+#   open <file>               open picked YouTube videos in the browser; print other URIs
 #   meta <summary-uri>       append "uri<TAB>title<TAB>channel<TAB>duration" to the cache
 #   errors                   show the last raw ov error output
 #   footer | change | mode | toggle | cycle | keys-toggle | enter   fzf actions for transform binds
@@ -34,7 +35,7 @@ if [ -n "${NO_COLOR:-}" ] || [ "${TERM:-}" = dumb ]; then
 else
 	COLOR=1 DIM=$(printf '\033[2m') RED=$(printf '\033[31m') BOLD=$(printf '\033[1m') OFF=$(printf '\033[0m')
 fi
-HINTS="enter pick · tab mark · ctrl-t videos/chunks · ctrl-k keys"
+HINTS="enter open · tab mark · ctrl-t videos/chunks · ctrl-k keys"
 MIN_CHUNK=200 # bytes; smaller transcript tails (e.g. "one") are never shown as evidence
 CACHE_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/ovf
 TITLES=$CACHE_DIR/titles.tsv
@@ -128,6 +129,20 @@ summary_of() {
 
 strip_front_matter() { awk 'NR == 1 && /^---$/ { fm = 1; next } fm && /^---$/ { fm = 0; next } !fm'; }
 
+# YouTube URL of a picked row's video; empty when the row is not a YouTube video.
+# $1 row URI (summary or transcript part, may be empty)  $2 row dir key
+yt_url() {
+	uri=$1 dir=$2
+	case $dir in viking://resources/youtube/processed/*) ;; *) return 1 ;; esac
+	case $uri in
+	*_4more_*.md) s=$uri ;;
+	*Full_Transcript_[0-9]*.md) s=$(summary_of "$(dirname "$dir")") ;;
+	*) s=$(summary_of "$dir") ;;
+	esac
+	[ -n "$s" ] || return 1
+	ov read "$s" 2>/dev/null | head -n 20 | fm_value url
+}
+
 # Value of a front-matter key, JSON-unquoted ("Herdr — Setup" -> "Herdr — Setup").
 fm_value() { sed -n "s/^$1: //p" | head -n 1 | jq -rR 'fromjson? // .' | tr -d '\t'; }
 
@@ -201,7 +216,7 @@ preview)
 	keys)
 		cat <<EOF
 ${BOLD}keys${OFF}
-  enter       print the picked URI(s) and exit
+  enter       open the video on YouTube (other rows: print URI) and exit
   tab         mark / unmark a row (multi-pick)
   esc         cancel (exit 130)
 
@@ -287,6 +302,26 @@ accept)
 	done <"$1"
 	[ "$n" -gt 0 ]
 	;;
+open)
+	# Like accept, but YouTube video rows open their video in the browser instead.
+	n=0
+	while IFS= read -r line; do
+		uri=$(printf '%s\n' "$line" | cut -f2)
+		dir=$(printf '%s\n' "$line" | cut -f3)
+		url=$(yt_url "$uri" "$dir")
+		if [ -n "$url" ]; then
+			printf '%s\n' "$url"
+			open "$url"
+		else
+			[ -z "$uri" ] && uri=$(summary_of "$dir")
+			[ -z "$uri" ] && uri=$dir
+			[ -z "$uri" ] && continue
+			printf '%s\n' "$uri"
+		fi
+		n=$((n + 1))
+	done <"$1"
+	[ "$n" -gt 0 ]
+	;;
 errors)
 	if [ -s "$OVF_RAW" ]; then grep -v '^cmd:' "$OVF_RAW"; else echo "no error"; fi
 	;;
@@ -327,7 +362,7 @@ cycle)
 	;;
 enter)
 	# fzf skips become(...{+f}) on an empty list; exit 1 there instead (clig.dev exit codes).
-	if [ "${FZF_MATCH_COUNT:-0}" -eq 0 ]; then echo 'become:exit 1'; else printf 'become:%s accept {+f}\n' "$self"; fi
+	if [ "${FZF_MATCH_COUNT:-0}" -eq 0 ]; then echo 'become:exit 1'; else printf 'become:%s open {+f}\n' "$self"; fi
 	;;
 keys-toggle)
 	case ${FZF_PREVIEW_LABEL:-} in
@@ -336,7 +371,7 @@ keys-toggle)
 	esac
 	;;
 *)
-	echo "usage: ovf-helper fetch|preview|accept|meta|errors|footer|change|mode|toggle|cycle|keys-toggle" >&2
+	echo "usage: ovf-helper fetch|preview|accept|open|meta|errors|footer|change|mode|toggle|cycle|keys-toggle" >&2
 	exit 2
 	;;
 esac

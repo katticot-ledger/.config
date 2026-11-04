@@ -1,7 +1,7 @@
 # ovf: semantic search over OpenViking with fzf. Prints the picked viking:// URIs.
 # Backend logic lives in $__fish_config_dir/ovf-helper (POSIX sh, called by fzf).
 # Exit status: 0 picked, 1 nothing to pick, 2 bad usage / missing tool, 130 cancelled.
-function ovf --description 'fzf picker over ov find; prints picked viking:// URIs'
+function ovf --description 'fzf picker over ov find; enter opens the video on YouTube, other rows print URIs'
     argparse -n ovf h/help 'n/limit=' 'u/uri=' 't/threshold=' 'L/level=' \
         'T/context-type=' 'after=' 'before=' 'tags=' c/chunks -- $argv
     or return 2
@@ -10,7 +10,7 @@ function ovf --description 'fzf picker over ov find; prints picked viking:// URI
         echo "usage: ovf [options] [query...]   (ovf -- -query for a leading dash)
 
 One row per video: title │ category │ N matches (summary + transcript parts).
-Enter prints the summary URI. Type to search again; ctrl-k lists all keys.
+Enter opens the video on YouTube; other rows print their URI. Type to search again; ctrl-k lists all keys.
 Options (most are passed to ov find):
   -n, --limit N          rows to show (default 30; fetches 3x, min 100)
   -c, --chunks           start with one row per matched file
