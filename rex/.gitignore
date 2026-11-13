@@ -1,0 +1,4 @@
+backups/
+__pycache__/
+.init.lua.backup
+init.lua.bak-*

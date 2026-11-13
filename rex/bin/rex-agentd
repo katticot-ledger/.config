@@ -1,0 +1,637 @@
+#!/bin/sh
+# rex-agentd — component 2 of the Rex agent auto-resume system.
+#
+# Spawned detached by init.lua (component 1, one exec.start call). This daemon
+# is the single writer of the pin store (SQLite, WAL). No lock files, no temp
+# files, no rename protocol: SQLite gives transactional upserts for free.
+#
+#   START:  wait for the Rex server, then RESUME — read pins, inject resume
+#           commands into restored empty panes (reboots and server restarts
+#           both restore panes as empty shells). Rex re-issues block ids on
+#           restart, so a pin whose block_id is gone is re-keyed onto the
+#           restored empty shell in the same session/window (matched by
+#           pane_index, then by cwd) before resuming. Pins are NEVER pruned
+#           for a missing block_id: only a destroyed session or an explicitly
+#           closed block removes a pin.
+#   FOREVER: RECORD — consume the Rex event stream in a background job:
+#             - program_status_changed records with id "<agent>/session"
+#               carry "session_id=<uuid> cwd=<path>" in msg (announced by each
+#               agent's hook/extension via OSC 7501) -> exact pin.
+#             - process_changed with an agent in the foreground and no pin
+#               -> NOTICE in the log (visibility replaces the old heuristics).
+#             - session_destroyed -> prune the pins of that session;
+#               block_closed -> prune that pin.
+#           When the stream ends (server restart), reconnect and RESUME again.
+#   RELOAD: SIGHUP — or a line written to $state/agentd.fifo (init.lua sends
+#           the signal on every config reload, ctrl+b shift+r) — re-runs
+#           RESUME without restarting the daemon.
+#   FALLBACK: fallback_watch pins agent panes whose OSC 7501 announcement
+#           never arrived: after 30s without a pin, match the agent's newest
+#           on-disk transcript for the pane's cwd and pin that session.
+#
+# Env overrides (for isolated testing): REX_SERVER, REX_AGENTS_STATE,
+# REX_AGENTS_DB. map.json (the pre-SQLite store) is imported once at first
+# start, then renamed to map.json.imported.
+set -u
+home=$HOME
+state=${REX_AGENTS_STATE:-$home/.local/state/rex-agents}
+db=${REX_AGENTS_DB:-$home/.config/rex-agents/pins.db}
+mapjson=$home/.config/rex-agents/map.json
+REX_BIN=${REX_BIN:-"$home/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"}
+if [ ! -x "$REX_BIN" ]; then echo "rex-agentd: rex server binary not found: $REX_BIN" >&2; exit 1; fi
+export PATH="$(dirname "$REX_BIN"):/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+mkdir -p "$state" || { echo "rex-agentd: cannot create state dir $state" >&2; exit 1; }
+log=$state/agentd.log
+wlog() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >> "$log"; }
+
+# ---------------------------------------------------------------- store ----
+# SQLite via the CLI. q() escapes single quotes: hostile cwds (apostrophes)
+# must not break SQL. Never interpolate unescaped values.
+# sq() adds a busy timeout: the stream consumer, the transcript fallback
+# watcher and resume passes may write concurrently.
+q() { printf '%s' "$1" | sed "s/'/''/g"; }
+# shq() shell-escapes for the resume command line: a cwd with an apostrophe
+# ("John's project") must not break out of the single-quoted cd/exec — the
+# cwd arrives from agent-controlled announcements, so it is a trust boundary.
+shq() { printf '%s' "$1" | sed "s/'/'\\\\''/g"; }
+# san() keeps '|' out of the pipe-delimited snapshot/pin fields (a '|' in a
+# label would misalign columns); harmless for matching, applied consistently
+# at capture and at snapshot time.
+san() { printf '%s' "$1" | tr '|' '_'; }
+sq() { sqlite3 -cmd '.timeout 2000' "$db" "$1"; }
+
+pin_init() {
+    sqlite3 -cmd '.timeout 2000' "$db" <<'SQL'
+PRAGMA journal_mode=WAL;
+CREATE TABLE IF NOT EXISTS pins(
+  block_id TEXT PRIMARY KEY,
+  agent TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  cwd TEXT NOT NULL,
+  rex_session_id TEXT NOT NULL,
+  extra_args TEXT NOT NULL DEFAULT '',
+  session_label TEXT NOT NULL DEFAULT '',
+  window_label TEXT NOT NULL DEFAULT '',
+  pane_index INTEGER NOT NULL DEFAULT -1,
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS events(
+  ts TEXT DEFAULT (datetime('now')),
+  kind TEXT, block_id TEXT, detail TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_events_kind_block ON events(kind, block_id);
+SQL
+    # events are audit history, not a ledger: keep a bounded window
+    sq "DELETE FROM events WHERE ts < datetime('now', '-30 days');" 2>/dev/null
+    # migrations for older databases: ignore errors if the columns exist
+    sq "ALTER TABLE pins ADD COLUMN extra_args TEXT NOT NULL DEFAULT '';" 2>/dev/null
+    sq "ALTER TABLE pins ADD COLUMN session_label TEXT NOT NULL DEFAULT '';" 2>/dev/null
+    sq "ALTER TABLE pins ADD COLUMN window_label TEXT NOT NULL DEFAULT '';" 2>/dev/null
+    sq "ALTER TABLE pins ADD COLUMN pane_index INTEGER NOT NULL DEFAULT -1;" 2>/dev/null
+    # One-time import from the pre-SQLite store.
+    if [ -f "$mapjson" ] && [ "$(pin_count)" -eq 0 ]; then
+        jq -r 'to_entries[] | [.key, .value.agent, .value.session_id, .value.cwd, .value.rex_session_id] | @tsv' \
+            "$mapjson" 2>/dev/null | while IFS="$(printf '\t')" read -r b a s c r; do
+            [ -n "$b" ] && [ -n "$a" ] && pin_upsert "$b" "$a" "$s" "$c" "$r"
+        done
+        mv "$mapjson" "$mapjson.imported"
+        wlog "imported $(pin_count) pins from map.json"
+    fi
+}
+pin_count() { sq "SELECT count(*) FROM pins;"; }
+pin_upsert() { # block_id agent session_id cwd rex_session_id [extra_args]
+    sq "INSERT INTO pins(block_id,agent,session_id,cwd,rex_session_id,extra_args,session_label,window_label,pane_index,updated_at) VALUES('$(q "$1")','$(q "$2")','$(q "$3")','$(q "$4")','$(q "$5")','$(q "${6:-}")','','',-1,datetime('now')) ON CONFLICT(block_id) DO UPDATE SET agent=excluded.agent, session_id=excluded.session_id, cwd=excluded.cwd, rex_session_id=excluded.rex_session_id, extra_args=CASE WHEN excluded.extra_args <> '' THEN excluded.extra_args ELSE pins.extra_args END, updated_at=datetime('now');"
+}
+
+# pin_attach_context <block_id> <rex_session_id>: fill the session_label /
+# window_label / pane_index columns from the live layout, so a pin can be
+# re-keyed onto the restored pane of the same window after a restart.
+pin_attach_context() {
+    slabel=$(san "$("$REX_BIN" --autostart=false ls --json 2>/dev/null | jq -r --arg s "$2" '.sessions[]? | select(.session_id==$s) | .label // ""')")
+    wctx=$("$REX_BIN" --autostart=false window ls -s "$2" --json 2>/dev/null | jq -r --arg b "$1" '
+        .windows[]? as $w |
+        [$w.layers[]?.blocks[]?.block_id] as $bs |
+        ($bs | index($b)) as $i |
+        select($i != null) |
+        [($w.label // ""), $i] | @tsv' | head -1)
+    wlabel=""; pidx=""
+    if [ -n "$wctx" ]; then
+        wlabel=$(san "$(printf '%s' "$wctx" | cut -f1)")
+        pidx=$(printf '%s' "$wctx" | cut -f2)
+    fi
+    sq "UPDATE pins SET session_label='$(q "$slabel")', window_label='$(q "$wlabel")', pane_index=${pidx:--1} WHERE block_id='$(q "$1")';"
+}
+
+# detect_args <agent> <pid>: the running agent's command line still carries its
+# launch flags (yolo/bypass modes); read them once and store them in the pin,
+# so the resume re-applies the same mode. Only the known flag tokens are kept.
+detect_args() {
+    cmd=$(ps -o command= -p "$2" 2>/dev/null) || return 0
+    case "$1" in
+    claude)
+        case "$cmd" in *--dangerously-skip-permissions*) echo "--dangerously-skip-permissions" ;; esac
+        ;;
+    codex)
+        case "$cmd" in *--dangerously-bypass*|--yolo*) echo "--dangerously-bypass-approvals-and-sandbox" ;; esac
+        ;;
+    antigravity)
+        case "$cmd" in
+        *--dangerously-skip-permissions*) echo "--dangerously-skip-permissions" ;;
+        *--mode=auto*|*"--mode auto"*) echo "--mode auto" ;;
+        esac
+        ;;
+    esac
+    return 0
+}
+pin_read_all() { sqlite3 -cmd '.timeout 2000' -separator '|' "$db" "SELECT block_id,agent,session_id,cwd,rex_session_id,extra_args,session_label,window_label,pane_index,updated_at FROM pins ORDER BY block_id;"; }
+pin_get() { sqlite3 -cmd '.timeout 2000' -separator '|' "$db" "SELECT agent,session_id,cwd FROM pins WHERE block_id='$(q "$1")';"; }
+pin_delete() { sq "DELETE FROM pins WHERE block_id='$(q "$1")';"; }
+event_log() { sq "INSERT INTO events(kind,block_id,detail) VALUES('$(q "$1")','$(q "$2")','$(q "$3")');"; }
+
+# recently_resumed <block_id>: true (0) if this block was resumed within the
+# last 60s — guards against a SIGHUP-triggered rerun double-injecting the
+# resume command into a pane where the agent is still starting.
+recently_resumed() {
+    last=$(sq "SELECT ts FROM events WHERE kind='resume' AND block_id='$(q "$1")' ORDER BY rowid DESC LIMIT 1;" 2>/dev/null)
+    [ -n "$last" ] || return 1
+    then_=$(date -u -j -f "%Y-%m-%d %H:%M:%S" "$last" +%s 2>/dev/null) || return 1
+    [ $(( $(date -u +%s) - then_ )) -lt 60 ]
+}
+
+# --------------------------------------------------------------- resume ----
+resume_cmd() { # agent session_id cwd extra_args -> full command line for the pane
+    # cwd and session_id are shell-escaped: ' -> '\'' keeps them inside the
+    # single quotes. extra_args is a fixed whitelist of flag tokens.
+    case "$1" in
+        pi)          printf "cd -- '%s' && exec pi --session '%s' %s" "$(shq "$3")" "$(shq "$2")" "${4:-}" ;;
+        claude)      printf "cd -- '%s' && exec claude --resume '%s' %s" "$(shq "$3")" "$(shq "$2")" "${4:-}" ;;
+        codex)       printf "cd -- '%s' && exec codex resume '%s' %s" "$(shq "$3")" "$(shq "$2")" "${4:-}" ;;
+        antigravity) printf "cd -- '%s' && exec agy --conversation '%s' %s" "$(shq "$3")" "$(shq "$2")" "${4:-}" ;;
+        *) return 1 ;;
+    esac
+}
+
+is_shell() { case "$1" in bash|zsh|fish|sh|dash|ksh|-bash|-zsh|-fish|-sh|-dash|-ksh) return 0 ;; *) return 1 ;; esac }
+
+# empty_shell <session> <block>: exit 0 if the pane is a restored empty shell
+# (shell in the foreground, no status records).
+empty_shell() {
+    process=$("$REX_BIN" --autostart=false block call -s "$1" -b "$2" process 2>/dev/null) || return 1
+    name=$(printf '%s' "$process" | jq -r '.foreground.name // ""')
+    is_shell "$name" || return 1
+    records=$("$REX_BIN" --autostart=false block call -s "$1" -b "$2" program_status 2>/dev/null | jq -r '.records | length') || return 1
+    [ "$records" = "0" ]
+}
+
+# layout_snapshot: one pass over the live layout ->
+#   "rex_session_id|session_label|window_label|pane_index|block_id"
+# pane_index is the block's position in its window's block list (stable across
+# restores, unlike the block_id itself).
+layout_snapshot() {
+    "$REX_BIN" --autostart=false ls --json 2>/dev/null | jq -r '.sessions[]? | [.session_id, (.label // "")] | @tsv' |
+    while IFS="$(printf '\t')" read -r s slabel; do
+        "$REX_BIN" --autostart=false window ls -s "$s" --json 2>/dev/null |
+        jq -r '
+            .windows[]? as $w |
+            [$w.layers[]?.blocks[]?.block_id] as $bs |
+            range(0; ($bs | length)) as $i |
+            [($w.label // ""), $i, $bs[$i]] | @tsv' |
+        while IFS="$(printf '\t')" read -r wlabel pidx b; do
+            printf '%s|%s|%s|%s|%s\n' "$s" "$(san "$slabel")" "$(san "$wlabel")" "$pidx" "$b"
+        done
+    done
+}
+
+# scan_idx <snapfile> <slabel> <wlabel> <pidx> <claimed>: the snapshot line
+# matching the pin's window position, if that block is unclaimed and an empty
+# shell. Empty slabel/wlabel act as wildcards.
+scan_idx() {
+    m=$(awk -F'|' -v sl="$2" -v wl="$3" -v pi="$4" '
+        (sl == "" || $2 == sl) && (wl == "" || $3 == wl) && $4 == pi {print $1"|"$5; exit}' "$1" 2>/dev/null)
+    [ -n "$m" ] || return 0
+    cb=${m##*|}
+    case " $5 " in *" $cb "*) return 0 ;; esac
+    empty_shell "${m%%|*}" "$cb" && printf '%s\n' "$m"
+}
+
+# scan_cwd <snapfile> <slabel> <wlabel> <cwd> <claimed>: first unclaimed empty
+# shell (same session/window; empty labels are wildcards) whose shell cwd
+# matches the pin's cwd.
+scan_cwd() {
+    awk -F'|' -v sl="$2" -v wl="$3" '
+        (sl == "" || $2 == sl) && (wl == "" || $3 == wl) {print}' "$1" 2>/dev/null | {
+        while IFS='|' read -r csid csl cwl cpi cb; do
+            [ -n "$cb" ] || continue
+            case " $5 " in *" $cb "*) continue ;; esac
+            empty_shell "$csid" "$cb" || continue
+            scwd=$("$REX_BIN" --autostart=false block call -s "$csid" -b "$cb" process 2>/dev/null | jq -r '.foreground.cwd // empty')
+            [ "$scwd" = "$4" ] || continue
+            printf '%s|%s\n' "$csid" "$cb"
+            break
+        done
+    }
+}
+
+# pick_shell <snapfile> <slabel> <wlabel> <pidx> <cwd> <claimed>:
+# "rexsid|block" of the restored empty shell this pin should move to, or
+# nothing. Same session/window by pane_index first, then by cwd; pins with no
+# context at all (pre-migration rows) fall back to a cwd match anywhere.
+pick_shell() {
+    m=$(scan_idx "$1" "$2" "$3" "$4" "$6")
+    [ -n "$m" ] && { printf '%s\n' "$m"; return 0; }
+    m=$(scan_cwd "$1" "$2" "$3" "$5" "$6")
+    [ -n "$m" ] && { printf '%s\n' "$m"; return 0; }
+    if [ -z "$2" ] && [ -z "$3" ]; then
+        m=$(scan_cwd "$1" "" "" "$5" "$6")
+        [ -n "$m" ] && printf '%s\n' "$m"
+    fi
+    return 0
+}
+
+# resume_all: for every pin — if its pane exists and is an empty shell, inject
+# the agent's resume command; if the block_id went stale (Rex restart), re-key
+# the pin onto the matching restored empty shell first. Pins are never pruned
+# here: a missing block_id means "unplaced", not "dead".
+resume_all() {
+    snapf=$(mktemp "$state/snap.XXXXXX") || return 0
+    layout_snapshot > "$snapf"
+    claimed=""
+    pin_read_all | while IFS='|' read -r block agent sid cwd rexsid extra slabel wlabel pidx uat; do
+        [ -n "$block" ] || continue
+        # does the block still exist?
+        live=$(awk -F'|' -v b="$block" '$5==b {print $1; exit}' "$snapf")
+        if [ -z "$live" ]; then
+            # block gone: Rex re-issued ids across the restart. Find the
+            # restored shell that is this pin's pane and re-key onto it.
+            m=$(pick_shell "$snapf" "$slabel" "$wlabel" "$pidx" "$cwd" "$claimed")
+            [ -n "$m" ] || continue
+            live=${m%%|*}; nblock=${m##*|}
+            # never re-key onto a block that already carries another pin
+            # (e.g. an announced pane whose agent has not started yet)
+            [ -z "$(pin_get "$nblock")" ] || continue
+            claimed="$claimed $nblock"
+            pin_upsert "$nblock" "$agent" "$sid" "$cwd" "$live" "$extra"
+            pin_delete "$block"
+            pin_attach_context "$nblock" "$live"
+            event_log rekey "$nblock" "$block -> $nblock"
+            wlog "re-keyed $block -> $nblock ($agent session=$sid)"
+            block=$nblock
+        fi
+        if empty_shell "$live" "$block"; then
+            if recently_resumed "$block"; then
+                wlog "skip resume of $block: resumed within the last 60s"
+                continue
+            fi
+            cmd=$(resume_cmd "$agent" "$sid" "$cwd" "$extra") || { wlog "unsupported agent $agent for $block"; continue; }
+            if "$REX_BIN" --autostart=false send -s "$live" -b "$block" "$cmd" 2>/dev/null; then
+                # log the resume event as soon as the text is in the pane: a
+                # failed enter must not cause a duplicate injection next pass
+                wlog "resumed $block: $agent session=$sid"
+                event_log resume "$block" "$agent $sid"
+                "$REX_BIN" --autostart=false send-key -s "$live" -b "$block" enter 2>/dev/null \
+                    || wlog "WARNING: resume text sent to $block but enter failed; command sits at the prompt"
+            else
+                wlog "failed to send resume to $block"
+            fi
+        fi
+    done
+    rm -f "$snapf"
+}
+
+# ------------------------------------------------------- transcript fb ----
+# transcript_lookup <agent> <cwd>: the agent's newest on-disk session for that
+# cwd — the source of truth when the OSC 7501 announcement never arrived
+# (daemonized harnesses, missing hooks). Prints the session id, or nothing.
+transcript_lookup() {
+    case "$1" in
+    claude)
+        for d in "$home"/.claude/projects/*; do
+            [ -d "$d" ] || continue
+            f=$(ls -t "$d"/*.jsonl 2>/dev/null | head -1)
+            [ -n "$f" ] || continue
+            if head -5 "$f" 2>/dev/null | grep -Fq "\"cwd\":\"$2\""; then
+                basename "$f" .jsonl
+                return 0
+            fi
+        done ;;
+    pi)
+        for d in "$home"/.pi/agent/sessions/*; do
+            [ -d "$d" ] || continue
+            f=$(ls -t "$d"/*.jsonl 2>/dev/null | head -1)
+            [ -n "$f" ] || continue
+            if head -1 "$f" 2>/dev/null | grep -Fq "\"cwd\":\"$2\""; then
+                basename "$f" .jsonl | sed 's/.*_//'
+                return 0
+            fi
+        done ;;
+    codex)
+        find "$home"/.codex/sessions -name 'rollout-*.jsonl' -mtime -2 2>/dev/null |
+        xargs ls -t 2>/dev/null | while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            c=$(head -1 "$f" | jq -r '.payload.cwd // empty' 2>/dev/null)
+            if [ "$c" = "$2" ]; then
+                head -1 "$f" | jq -r '.payload.id // empty' 2>/dev/null
+                break
+            fi
+        done ;;
+    antigravity)
+        sqlite3 -cmd '.timeout 2000' "$home/.gemini/antigravity-cli/conversation_summaries.db" \
+            "SELECT conversation_id FROM conversation_summaries WHERE killed = 0 AND instr(workspace_uris, 'file://$(q "$2")\"') > 0 ORDER BY last_modified_time DESC LIMIT 1;" 2>/dev/null
+        ;;
+    esac
+    return 0
+}
+
+# fallback_watch: every 30s, pin agent panes that still have no pin record.
+# First sighting only records the time; the transcript fallback fires once
+# the pane has run the agent for 30s without announcing (hook missing or
+# announcement lost). Announced panes always have a pin and are skipped.
+fallback_watch() {
+    seen=""  # "block:epoch" records of unpinned agent panes, first-seen time
+    while true; do
+        sleep 30
+        "$REX_BIN" --autostart=false ls >/dev/null 2>&1 || continue
+        now=$(date +%s)
+        keep=""
+        for s in $("$REX_BIN" --autostart=false ls --json 2>/dev/null | jq -r '.sessions[]?.session_id'); do
+            for b in $("$REX_BIN" --autostart=false block ls -s "$s" --json 2>/dev/null | jq -r '.blocks[]?.block_id'); do
+                proc=$("$REX_BIN" --autostart=false block call -s "$s" -b "$b" process 2>/dev/null) || continue
+                argv0=$(printf '%s' "$proc" | jq -r '.foreground.argv0 // empty')
+                case "$argv0" in pi|claude|codex|agy) ;; *) continue ;; esac
+                [ -z "$(pin_get "$b")" ] || continue
+                first=""
+                for rec in $seen; do
+                    # block ids contain ':' — strip to the LAST colon (the epoch)
+                    case "$rec" in "$b:"*) first=${rec##*:} ;; esac
+                done
+                if [ -z "$first" ]; then
+                    keep="$keep $b:$now"
+                    continue
+                fi
+                if [ $((now - first)) -lt 30 ]; then
+                    keep="$keep $b:$first"
+                    continue
+                fi
+                pcwd=$(printf '%s' "$proc" | jq -r '.foreground.cwd // empty')
+                if [ -z "$pcwd" ]; then
+                    keep="$keep $b:$first"
+                    continue
+                fi
+                agent=$argv0; [ "$argv0" = agy ] && agent=antigravity
+                sid=$(transcript_lookup "$agent" "$pcwd")
+                if [ -n "$sid" ]; then
+                    # newest-for-cwd cannot tell same-cwd panes apart: if that
+                    # session already belongs to another pane, pinning it here
+                    # would cross-wire the two panes — leave this one unpinned.
+                    if [ -n "$(sq "SELECT 1 FROM pins WHERE session_id='$(q "$sid")' AND block_id<>'$(q "$b")' LIMIT 1;")" ]; then
+                        wlog "transcript fallback: session $sid already pinned to another pane; leaving $b unpinned"
+                        continue
+                    fi
+                    fpid=$(printf '%s' "$proc" | jq -r '.foreground.pid // empty')
+                    extra=$(detect_args "$agent" "${fpid:-0}")
+                    pin_upsert "$b" "$agent" "$sid" "$pcwd" "$s" "$extra"
+                    pin_attach_context "$b" "$s"
+                    event_log pin "$b" "$agent $sid (transcript)"
+                    wlog "pinned $b: $agent session=$sid (transcript fallback)"
+                else
+                    keep="$keep $b:$first"  # transcript not flushed yet; retry
+                fi
+            done
+        done
+        seen="$keep"
+    done
+}
+
+# resolve_pending: announcements spooled by daemonized hooks (no pane tty).
+# For each: lsof the transcript -> owning harness pid -> the pane with that
+# pid in the foreground -> pin. Stale entries (>10 min) are dropped.
+resolve_pending() {
+    spool=$state/announcements.log
+    [ -s "$spool" ] || return 0
+    tmp=$spool.tmp
+    : > "$tmp"
+    while IFS='|' read -r agent sid cwd tp ts; do
+        [ -n "$agent" ] || continue
+        # stale?
+        now=$(date -u +%s); then_=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null || echo 0)
+        if [ $((now - then_)) -gt 600 ]; then
+            wlog "dropping stale announcement $agent $sid"
+            continue
+        fi
+        opid=$(/usr/sbin/lsof -t "$tp" 2>/dev/null | head -1)
+        if [ -z "$opid" ]; then
+            printf '%s|%s|%s|%s|%s\n' "$agent" "$sid" "$cwd" "$tp" "$ts" >> "$tmp"
+            continue
+        fi
+        # find the pane whose foreground is the transcript owner.
+        # for-loops (not while|pipelines): subshells would lose `found`.
+        found=""
+        for s in $("$REX_BIN" --autostart=false ls --json 2>/dev/null | jq -r '.sessions[]?.session_id'); do
+            [ -n "$found" ] && break
+            for b in $("$REX_BIN" --autostart=false block ls -s "$s" --json 2>/dev/null | jq -r '.blocks[]?.block_id'); do
+                fpid=$("$REX_BIN" --autostart=false block call -s "$s" -b "$b" process 2>/dev/null | jq -r '.foreground.pid // empty')
+                if [ "$fpid" = "$opid" ]; then
+                    extra=$(detect_args "$agent" "$opid")
+                    pin_upsert "$b" "$agent" "$sid" "$cwd" "$s" "$extra"
+                    pin_attach_context "$b" "$s"
+                    event_log pin "$b" "$agent $sid (spool)"
+                    wlog "pinned $b: $agent session=$sid (resolved via transcript)"
+                    found=1
+                    break
+                fi
+            done
+        done
+        # fallback: the focused window. The user typed the prompt there, so a
+        # daemonized harness conversation almost certainly runs in it.
+        if [ -z "$found" ] && [ -n "$last_active_session" ] && [ -n "$last_active_window" ]; then
+            for b in $("$REX_BIN" --autostart=false block ls -s "$last_active_session" --json 2>/dev/null | jq -r '.blocks[]?.block_id'); do
+                proc=$("$REX_BIN" --autostart=false block call -s "$last_active_session" -b "$b" process 2>/dev/null)
+                fargv0=$(printf '%s' "$proc" | jq -r '.foreground.argv0 // empty')
+                fcwd=$(printf '%s' "$proc" | jq -r '.foreground.cwd // empty')
+                fpid=$(printf '%s' "$proc" | jq -r '.foreground.pid // empty')
+                if [ "$fargv0" = "codex" ] && [ "$fcwd" = "$cwd" ]; then
+                    extra=$(detect_args "$agent" "${fpid:-0}")
+                    pin_upsert "$b" "$agent" "$sid" "$cwd" "$last_active_session" "$extra"
+                    pin_attach_context "$b" "$last_active_session"
+                    event_log pin "$b" "$agent $sid (focused)"
+                    wlog "pinned $b: $agent session=$sid (resolved via focused window)"
+                    found=1
+                    break
+                fi
+            done
+        fi
+        # still unresolved? keep it pending (retry on the next pass)
+        if [ -z "$found" ]; then
+            printf '%s|%s|%s|%s|%s\n' "$agent" "$sid" "$cwd" "$tp" "$ts" >> "$tmp"
+        fi
+    done < "$spool"
+    mv "$tmp" "$spool"
+    [ -s "$spool" ] || rm -f "$spool"
+}
+
+# ---------------------------------------------------------------- record ----
+agent_from_id() { case "$1" in pi/*) echo pi ;; claude/*) echo claude ;; codex/*) echo codex ;; antigravity/*) echo antigravity ;; *) return 1 ;; esac }
+
+# consume_stream: the RECORD loop. Runs as a background job so the main shell
+# can wait on it — a trapped SIGHUP interrupts the wait and re-runs RESUME
+# without touching this job.
+consume_stream() {
+    noticed=""
+    last_active_session=""
+    last_active_window=""
+    "$REX_BIN" --autostart=false events --json --all 2>/dev/null | while IFS= read -r line; do
+        resolve_pending
+        # the focused pane is where the user types; SessionStart announcements
+        # belong to it. Track the most recent focus across all sessions.
+        atype=$(printf '%s' "$line" | jq -r '.payload.event.type // empty' 2>/dev/null)
+        if [ "$atype" = "active_window_changed" ]; then
+            last_active_session=$(printf '%s' "$line" | jq -r '.payload.session_id // empty' 2>/dev/null)
+            last_active_window=$(printf '%s' "$line" | jq -r '.payload.event.payload.window_id // empty' 2>/dev/null)
+        fi
+        # kind is the event type ONCE: the pre-rewrite code concatenated the
+        # same jq extraction with itself ("block_eventblock_event"), which
+        # silently disabled this entire dispatcher (no announcement pins, no
+        # pruning) — the spool/transcript fallbacks masked it.
+        kind=$atype
+        case "$kind" in
+        block_event)
+            name=$(printf '%s' "$line" | jq -r '.payload.event.payload.name // empty' 2>/dev/null)
+            block=$(printf '%s' "$line" | jq -r '.payload.event.payload.block_id // empty' 2>/dev/null)
+            case "$name" in
+            program_status_changed)
+                rec=$(printf '%s' "$line" | jq -c '.payload.event.payload.payload.record // empty' 2>/dev/null)
+                rid=$(printf '%s' "$rec" | jq -r '.id // empty' 2>/dev/null)
+                case "$rid" in
+                */session)
+                    agent=$(agent_from_id "$rid") || continue
+                    msg=$(printf '%s' "$rec" | jq -r '.msg // empty' 2>/dev/null)
+                    sid=$(printf '%s' "$msg" | sed -n 's/.*session_id=\([0-9a-fA-F-]\{36\}\).*/\1/p')
+                    cwd=$(printf '%s' "$msg" | sed -n 's/.*cwd=\(.*\)$/\1/p')
+                    rexsid=$(printf '%s' "$line" | jq -r '.payload.session_id // empty' 2>/dev/null)
+                    if [ -n "$sid" ] && [ -n "$cwd" ] && [ -n "$rexsid" ]; then
+                        opid=$(printf '%s' "$rec" | jq -r '.owner.pid // empty' 2>/dev/null)
+                        extra=$(detect_args "$agent" "${opid:-0}")
+                        pin_upsert "$block" "$agent" "$sid" "$cwd" "$rexsid" "$extra"
+                        pin_attach_context "$block" "$rexsid"
+                        event_log pin "$block" "$agent $sid${extra:+ $extra}"
+                        wlog "pinned $block: $agent session=$sid${extra:+ $extra}"
+                    fi
+                    ;;
+                esac
+                ;;
+            process_changed)
+                argv0=$(printf '%s' "$line" | jq -r '.payload.event.payload.payload.foreground.argv0 // empty' 2>/dev/null)
+                case "$argv0" in
+                pi|claude|codex|agy)
+                    case " $noticed " in *" $block "*) ;; *)
+                        if [ -z "$(pin_get "$block")" ]; then
+                            wlog "NOTICE: $argv0 pane $block has no session announcement (hook missing?)"
+                            noticed="$noticed $block"
+                        fi
+                        ;;
+                    esac
+                    ;;
+                esac
+                ;;
+            esac
+            ;;
+        session_destroyed)
+            # prune ONLY the pins of the destroyed session — a missing block_id
+            # is not proof of death anymore (restarts re-issue block ids).
+            # DELETE + changes() in ONE statement so a busy timeout can never
+            # swallow the prune (the event is consumed either way).
+            dsid=$(printf '%s' "$line" | jq -r '.payload.session_id // empty' 2>/dev/null)
+            if [ -n "$dsid" ]; then
+                n=$(sq "DELETE FROM pins WHERE rex_session_id='$(q "$dsid")'; SELECT changes();")
+                if [ "$n" -gt 0 ] 2>/dev/null; then
+                    event_log prune "$dsid" "session destroyed"
+                    wlog "pruned $n pin(s) of destroyed session $dsid"
+                fi
+            fi
+            ;;
+        block_closed)
+            cb=$(printf '%s' "$line" | jq -r '.payload.event.payload.block_id // empty' 2>/dev/null)
+            if [ -n "$cb" ] && [ -n "$(pin_get "$cb" 2>/dev/null)" ]; then
+                pin_delete "$cb"
+                event_log prune "$cb" "block closed"
+                wlog "pruned $cb (closed)"
+            fi
+            ;;
+        esac
+    done
+}
+
+# --------------------------------------------------------------- daemon ----
+lock=$state/agentd.lock
+if [ -f "$lock" ]; then
+    old_pid=$(tr -cd '0-9' < "$lock" 2>/dev/null)
+    if [ -n "$old_pid" ]; then
+        if ! ps -p "$old_pid" -o command= 2>/dev/null | grep -q "rex-agentd"; then
+            wlog "stale lock with recycled pid $old_pid; removing"
+            rm -f "$lock"
+        fi
+    fi
+fi
+if ! /usr/bin/shlock -p $$ -f "$lock"; then
+    wlog "another rex-agentd is alive; exiting"
+    exit 0
+fi
+bg_pids=""
+stream_pid=""   # defined BEFORE the traps: kill_bg expands it, and set -u
+                 # would abort the trap if TERM arrived during startup
+kill_bg() { for p in $bg_pids $stream_pid; do pkill -P "$p" 2>/dev/null; kill "$p" 2>/dev/null; done; }
+trap 'kill_bg; rm -f "$lock"; exit 0' TERM INT
+hup=0
+trap 'hup=1' HUP
+
+wlog "rex-agentd starting (pid $$, db=$db)"
+pin_init
+
+# Control FIFO: any writer (e.g. `echo reload > agentd.fifo`) triggers a
+# resume pass via SIGHUP without restarting the daemon.
+fifo=$state/agentd.fifo
+[ -p "$fifo" ] || mkfifo "$fifo" 2>/dev/null
+if [ -p "$fifo" ]; then
+    # hold the fifo open O_RDWR: a writer closing without a newline must not
+    # EOF the reader (a dead reader makes the next writer block forever)
+    ( exec 3<>"$fifo"; while IFS= read -r _line <&3; do kill -HUP $$ 2>/dev/null; done ) &
+    bg_pids="$bg_pids $!"
+fi
+
+# Transcript fallback watcher: pins agent panes whose announcement never came.
+fallback_watch &
+bg_pids="$bg_pids $!"
+
+while true; do
+    # 1. Wait for the server.
+    i=0
+    until "$REX_BIN" --autostart=false ls >/dev/null 2>&1; do
+        i=$((i + 1))
+        [ "$i" -ge 30 ] && { wlog "server not ready after 60s; retrying"; i=0; }
+        sleep 2
+    done
+
+    # 2. Resume pinned agents into empty restored panes, re-keying pins whose
+    #    block ids went stale across a restart. No pruning here: pins die only
+    #    on session_destroyed / block_closed (handled in consume_stream).
+    #    hup is cleared BEFORE the pass so a SIGHUP landing mid-pass (config
+    #    reload while resume_all runs) triggers one re-run with the final state.
+    hup=0
+    resume_all
+    [ "$hup" = 1 ] && continue
+
+    # 3. Record: consume the event stream in the background; wait on it so a
+    #    SIGHUP interrupts the wait and loops back to the resume pass above.
+    if [ -z "$stream_pid" ] || ! kill -0 "$stream_pid" 2>/dev/null; then
+        consume_stream &
+        stream_pid=$!
+    fi
+    wait "$stream_pid"
+    if [ "$hup" = 1 ]; then
+        wlog "SIGHUP: re-running resume pass"
+        continue
+    fi
+    stream_pid=""
+    wlog "event stream ended; reconnecting"
+    sleep 10
+done

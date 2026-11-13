@@ -1,0 +1,73 @@
+#!/bin/sh
+# rex-agent-announce <agent-key> — announce this agent session to Rex via the
+# OSC 7501 Program Status Protocol, so rex-agentd can pin pane -> session
+# exactly. Called as a harness hook (claude SessionStart, codex SessionStart,
+# agy PreInvocation); reads the hook JSON from stdin.
+#
+# Hook subprocesses run WITHOUT a controlling terminal, so the sequence is
+# written to the pane's tty found by walking the process ancestors. Outside
+# Rex the walk finds the real terminal (harmless: unknown OSC is ignored) or
+# nothing (silent exit).
+#
+# agent-key: pi | claude | codex | antigravity  (the OSC id/app prefix)
+set -u
+# Hook subprocesses run with a sanitized PATH: use absolute paths only.
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+agent=${1:-}
+[ -n "$agent" ] || exit 0
+input=$(cat)
+sid=$(printf '%s' "$input" | /usr/bin/python3 -c 'import json,sys
+d=json.load(sys.stdin)
+print(d.get("session_id") or d.get("conversationId") or "")' 2>/dev/null)
+[ -n "$sid" ] || exit 0
+cwd=$(printf '%s' "$input" | /usr/bin/python3 -c 'import json,sys
+d=json.load(sys.stdin)
+c=d.get("cwd")
+if not c:
+    w=d.get("workspacePaths") or []
+    c=w[0] if w else ""
+print(str(c).removeprefix("file://"))' 2>/dev/null)
+[ -n "$cwd" ] || cwd=$PWD
+cwd=$(cd -- "$cwd" 2>/dev/null && pwd -P) || cwd=$PWD
+
+# Walk ancestors for a terminal: the hook itself has none (tty = '??').
+pid=$$
+tty=
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    t=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
+    if [ -n "$t" ] && [ "$t" != "??" ] && [ "$t" != "?" ]; then tty=$t; break; fi
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+    case "$pid" in ''|0|1) break ;; esac
+done
+if [ -z "$tty" ]; then
+    # Hooks spawned by a harness daemon (codex app-server) carry a stale
+    # environment; the transcript file names the TUI that owns this
+    # conversation -- lsof gives its pid, and that pid has the pane's tty.
+    tp=$(printf '%s' "$input" | /usr/bin/python3 -c 'import json,sys
+print(json.load(sys.stdin).get("transcript_path") or "")' 2>/dev/null)
+    if [ -n "$tp" ] && [ -f "$tp" ]; then
+        opid=$(/usr/sbin/lsof -t "$tp" 2>/dev/null | head -1)
+        if [ -n "$opid" ]; then
+            t=$(ps -o tty= -p "$opid" 2>/dev/null | tr -d ' ')
+            [ -n "$t" ] && [ "$t" != "??" ] && [ "$t" != "?" ] && tty=$t
+        fi
+    fi
+fi
+if [ -z "$tty" ]; then
+    # Daemonized harness hooks (codex app-server) have no pane ancestry and
+    # the transcript is not open yet at session start. Spool the announcement;
+    # rex-agentd resolves the pane via lsof on the transcript once the
+    # harness opens it.
+    tp=$(printf '%s' "$input" | /usr/bin/python3 -c 'import json,sys
+print(json.load(sys.stdin).get("transcript_path") or "")' 2>/dev/null)
+    [ -n "$tp" ] || exit 0
+    mkdir -p "$HOME/.local/state/rex-agents" 2>/dev/null
+    printf '%s|%s|%s|%s|%s\n' "$agent" "$sid" "$cwd" "$tp" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        >> "$HOME/.local/state/rex-agents/announcements.log" 2>/dev/null
+    exit 0
+fi
+
+msg=$(printf 'session_id=%s cwd=%s' "$sid" "$cwd" | base64)
+printf '\033]7501;state=idle:id=%s/session:app=%s:msg=%s\033\\' "$agent" "$agent" "$msg" > "/dev/$tty" 2>/dev/null
+exit 0
+printf '%s invoked agent=%s\n' "$(date -u +%H:%M:%S)" "$agent" >> /tmp/announce-invocations.log

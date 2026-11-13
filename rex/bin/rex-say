@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# rex-say — deliver text to another Rex block in one call. Prints <=3 lines.
+# Exit: 0 sent, 3 queued (agent busy), 4 typed not submitted, 1 failed.
+set -uo pipefail
+
+self="${BASH_SOURCE[0]}"
+# Installed as a symlink from ~/.local/bin, so resolve it to find the .lua here.
+while [ -L "$self" ]; do
+  link="$(readlink "$self")"
+  case "$link" in
+    /*) self="$link" ;;
+    *)  self="${self%/*}/$link" ;;
+  esac
+done
+dir="$(cd -P "${self%/*}" && pwd)"
+
+usage() {
+  cat <<'EOF'
+rex-say BLOCK TEXT
+rex-say BLOCK --file PATH      send "Read PATH" (cheap way to hand over a report)
+printf '%s' "$text" | rex-say BLOCK -
+
+BLOCK is a block id, short id, or label. Prints one line: <block> <program> <state> <result>
+
+  --replace     clear stray text already in the prompt
+  --append      type after stray text instead of refusing
+  --no-enter    type without pressing Enter
+  --yes         send even if the program waits on permission or a question
+  --force       send to a program rex-say cannot identify
+
+Flags may come before or after BLOCK and TEXT: rex-say --force BLOCK TEXT works.
+  --self        allow targeting my own block
+  --dry-run     say what would happen, send nothing
+  --verbose     add the screen tail
+EOF
+}
+
+if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then usage; exit 0; fi
+
+args=()
+target=""
+text=""
+have_target=0
+have_text=0
+literal=0
+
+# Flags may appear before or after BLOCK and TEXT; the first bare word is the
+# target, the second is the text. "--" makes every later word literal.
+while [ $# -gt 0 ]; do
+  if [ $literal -eq 0 ]; then
+    case "$1" in
+      --replace)  args+=("replace=true"); shift; continue ;;
+      --append)   args+=("append=true"); shift; continue ;;
+      --no-enter) args+=("enter=false"); shift; continue ;;
+      --enter)    args+=("enter=true"); shift; continue ;;
+      --yes)      args+=("yes=true"); shift; continue ;;
+      --force)    args+=("force=true"); shift; continue ;;
+      --self)     args+=("self=true"); shift; continue ;;
+      --verbose)  args+=("verbose=true"); shift; continue ;;
+      --dry-run|--dry) args+=("dry=true"); shift; continue ;;
+      --wait)     if [ $# -lt 2 ]; then echo "failed: --wait needs a value" >&2; exit 1; fi
+                  args+=("wait=$2"); shift 2; continue ;;
+      --file)     if [ $# -lt 2 ]; then echo "failed: --file needs a path" >&2; exit 1; fi
+                  args+=("file=$2"); shift 2; continue ;;
+      --)         literal=1; shift; continue ;;
+    esac
+  fi
+  if [ $have_target -eq 0 ]; then target="$1"; have_target=1; shift; continue; fi
+  if [ $have_text -eq 0 ]; then
+    if [ "$1" = "-" ] && [ $literal -eq 0 ]; then text="$(cat)"; else text="$1"; fi
+    have_text=1; shift; continue
+  fi
+  echo "failed: unexpected argument $1" >&2; exit 1
+done
+
+if [ $have_target -eq 0 ]; then echo "failed: no target: rex-say BLOCK ..." >&2; exit 1; fi
+args=("block=$target" "${args[@]}")
+if [ $have_text -eq 1 ]; then args+=("text=$text"); fi
+
+exec rex do "$dir/rex-say.lua" "${args[@]}"
