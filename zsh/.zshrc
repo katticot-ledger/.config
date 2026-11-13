@@ -1,0 +1,1 @@
+/Users/keita/.config/zshrc

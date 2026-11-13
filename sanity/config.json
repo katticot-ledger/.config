@@ -1,0 +1,10 @@
+{
+  "telemetryDisclosed": 1791447295590,
+  "telemetryConsent:6174d5cd5f94": {
+    "updatedAt": 1793814680668,
+    "value": {
+      "type": "telemetry",
+      "status": "granted"
+    }
+  }
+}

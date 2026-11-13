@@ -1,4 +1,7 @@
-raycast/
+raycast/*
+!raycast/scripts/
+raycast/scripts/*
+!raycast/scripts/*.sh
 openai/
 bun/
 gcloud/
@@ -122,3 +125,26 @@ wtf/log.txt
 turso_cli/
 jgit/
 
+
+**/.claude/settings.local.json
+
+# herdr app install (binaries, sockets, generated type defs)
+herdr-app/
+
+# rex agent runtime store
+rex-agents/
+
+# cagent runtime identity
+cagent/
+
+# shell runtime state and backups
+zsh/.zsh_history
+zsh/.zcompdump
+btop/btop.conf.bak-*
+
+# credentials
+tamka/mistral.env
+tuios-dashboard/password
+
+# vendored zsh plugins: keep files, drop the nested repo
+zsh/plugins/fzf-tab/.git/

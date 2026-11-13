@@ -2,10 +2,17 @@
 # 🌍 Environment & Path Setup (Global)
 # ===========================================
 
-# 🍺 Initialize Homebrew (First to ensure paths are available)
-# This sets up PATH, MANPATH, INFOPATH, etc.
-if test -x /opt/homebrew/bin/brew
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+# 🍺 Static Homebrew Setup (Eliminates `brew shellenv` fork for ~20ms faster startup)
+if test -d /opt/homebrew
+    set -gx HOMEBREW_PREFIX "/opt/homebrew"
+    set -gx HOMEBREW_CELLAR "/opt/homebrew/Cellar"
+    set -gx HOMEBREW_REPOSITORY "/opt/homebrew"
+    fish_add_path --global --move --path "/opt/homebrew/bin" "/opt/homebrew/sbin"
+    if not set -q INFOPATH
+        set -gx INFOPATH "/opt/homebrew/share/info:"
+    else
+        set -gx INFOPATH "/opt/homebrew/share/info" $INFOPATH
+    end
 end
 
 # 📁 XDG Base Directory Specification
@@ -29,6 +36,9 @@ fish_add_path $BUN_INSTALL/bin
 fish_add_path $HOME/.opencode/bin
 # Obsidian CLI
 fish_add_path /Applications/Obsidian.app/Contents/MacOS
+
+# Fast Node Manager (fnm)
+type -q fnm && fnm env --use-on-cd | source
 
 # 🔐 Pi Agent API Keys (lazy-loaded on demand)
 # Use `load_pi_keys` to fetch all keys when needed (e.g. before running pi).
@@ -56,16 +66,33 @@ if status is-interactive
     # 📭 Disable system mail check
     set -e MAIL
 
+    # 🤫 No welcome greeting (avoids stacking in restored TUIOS scrollback)
+    set -g fish_greeting ""
+
     # 🚀 Tools Initialization
     type -q zoxide && zoxide init fish | source
 
-    type -q fnm && fnm env --use-on-cd | source
-
-    # ⌨️ Keybindings
+    # ⌨️ Keybindings & Vi Mode
     fish_vi_key_bindings
+    # Modal cursor shapes (Beam in Insert, Block in Normal/Visual)
+    set -g fish_cursor_default block
+    set -g fish_cursor_insert line
+    set -g fish_cursor_visual block
+    set -g fish_cursor_replace_one underscore
+
+    # Quick normal mode escape: 'jk' in insert mode
+    bind -M insert jk "commandline -f repaint; set fish_bind_mode default"
+
     bind \cn nvims
     bind \cg 'git diff; commandline -f repaint'
     bind \cl clear-screen
+
+    # 🎨 Completion Pager Styling (Interactive fuzzy contrast)
+    set -g fish_pager_color_prefix cyan --bold --underline
+    set -g fish_pager_color_completion normal
+    set -g fish_pager_color_description yellow
+    set -g fish_pager_color_progress brwhite --background=cyan
+    set -g fish_pager_color_selected_background --background=brblack
 
     # 📂 Quick Directory Search Wrapper
     function __fzf_fdir
@@ -122,6 +149,15 @@ function gws-personal
     gws $argv
 end
 
+# Claude Code - named Powerhive accounts
+function cyt --description "Run Claude Code with the tech@powerhive.com account"
+    env CLAUDE_CONFIG_DIR="$HOME/.claude-tech-pow" claude $argv
+end
+
+function cyk --description "Run Claude Code with the keita@powerhive.com account"
+    env CLAUDE_CONFIG_DIR="$HOME/.claude-keita-pow" claude $argv
+end
+
 abbr -a gwp gws-powerhive
 abbr -a gws-per gws-personal
 
@@ -147,6 +183,16 @@ function load_pi_keys --description "Load API keys from pass (password store) fo
         test -n "$val"; and set -Ux ZAI_API_KEY $val; and echo "✓ ZAI_API_KEY"
     end
 
+    if not set -q MISTRAL_API_KEY
+        set -l val (pass MISTRAL_API_KEY 2>/dev/null)
+        test -n "$val"; and set -Ux MISTRAL_API_KEY $val; and echo "✓ MISTRAL_API_KEY"
+    end
+
+    if not set -q TYPESAFE_API_KEY
+        set -l val (pass typesafe/api-key 2>/dev/null)
+        test -n "$val"; and set -Ux TYPESAFE_API_KEY $val; and echo "✓ TYPESAFE_API_KEY"
+    end
+
     echo "Done — keys are now available for pi and other tools."
 end
 
@@ -157,3 +203,31 @@ fish_add_path -a "/Users/keita/.foundry/bin"
 
 # pi-ask-user: allow optional comment on ask_user prompts
 set -gx PI_ASK_USER_ALLOW_COMMENT true
+
+# 🔄 Graceful reboot helper (cleanly saves tuios before rebooting)
+function graceful-reboot --description "Gracefully stop tuios and reboot macOS"
+    if type -q tuios
+        echo "Saving sessions and stopping tuios daemon..."
+        tuios kill-server 2>/dev/null
+        sleep 2
+    end
+    echo "Rebooting system..."
+    sudo shutdown -r now
+end
+
+# ===========================================
+# ⚡ POSIX & Bash Interop Bridge
+# ===========================================
+function shc --description "Run raw command in bash subshell (for POSIX snippets)"
+    bash -c "$argv"
+end
+
+function source-env --description "Load .env or bash exports into fish using bass"
+    if functions -q bass
+        bass source $argv
+    else
+        echo "bass function not found in ~/.config/fish/functions"
+        return 1
+    end
+end
+

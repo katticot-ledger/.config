@@ -6,6 +6,7 @@ hide_window_buttons = true
 hide_scrollbar = true
 gap = 0
 panel_padding = 1
+border_focused_color = "#89b4fa"
 
 
 
@@ -23,3 +24,11 @@ persist_scrollback_lines = 2000
 prefix_scrollback = ['S']
 prefix_session_switcher = ['s']
 
+[hosts.matoury]
+addr = "matoury"
+
+[spotlight]
+enabled = false
+
+[hosts.matoury-ts]
+addr = "matoury-ts"

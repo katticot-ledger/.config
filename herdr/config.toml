@@ -1,5 +1,8 @@
 onboarding = false
 
+[terminal]
+new_cwd = "follow"
+
 [keys]
 goto = "cmd+k"
 new_tab = "cmd+t"
@@ -34,9 +37,12 @@ command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-v
 delivery = "terminal"
 
 [theme]
-name = "nord"
+name = "one-dark"
 
 auto_switch = false
+[experimental]
+allow_nested = true
+
 [ui]
 show_agent_labels_on_pane_borders = true
 agent_panel_sort = "spaces"
